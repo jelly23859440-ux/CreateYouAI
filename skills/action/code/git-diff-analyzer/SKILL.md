@@ -2,6 +2,7 @@
 name: Git Diff 分析器
 layer: action
 category: code
+status: unverified
 description: >
   读取 git diff 输出，分析代码变更，生成结构化的变更报告。
   当用户想要查看代码变更、分析提交历史、生成变更报告、

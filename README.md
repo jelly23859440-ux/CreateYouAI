@@ -73,18 +73,46 @@ AI 会读取 `ai-builder` Skill，自动从仓库挑选合适的组合。
 
 ## Skill Overview / 技能概览
 
-| Layer | Category | Count | Description |
-|-------|----------|-------|-------------|
-| 🧩 meta | ai-builder | 10 | 智能组合（架构设计指南） |
-| 🧩 meta | contribute | 1 | 社区贡献 |
-| 🧩 meta | mcp-adapter | 1 | MCP 工具适配 |
-| ⚡ action | code | 3 | 代码操作（沙箱、搜索、Git Diff） |
-| ⚡ action | web | 2 | 网络操作（抓取、API 测试） |
-| ⚡ action | file | 4 | 文件操作（PDF、CSV、图片、日志） |
-| ⚡ action | device | 3 | 设备交互（语音、SSH、邮件） |
-| 🧠 core | - | 5 | 核心能力（定时任务、Token、摘要、记忆、数据库） |
-| 🎭 identity | - | 2 | 身份层（Markdown 渲染、Frontmatter 解析） |
-| **Total** | | **31** | |
+| Skill | Layer | Category | Status | Description |
+|-------|-------|----------|--------|-------------|
+| [voice-recognition](skills/action/device/voice-recognition/) | ⚡ action | device | ✅ verified | 本地语音识别 |
+| [git-diff-analyzer](skills/action/code/git-diff-analyzer/) | ⚡ action | code | ⚠️ unverified | Git Diff 分析器 |
+| [code-search](skills/action/code/code-search/) | ⚡ action | code | ⚠️ unverified | 代码搜索工具 |
+| [code-sandbox](skills/action/code/code-sandbox/) | ⚡ action | code | ⚠️ unverified | 代码沙箱执行 |
+| [web-fetch](skills/action/web/web-fetch/) | ⚡ action | web | ⚠️ unverified | Web 抓取 + Markdown 转换 |
+| [api-tester](skills/action/web/api-tester/) | ⚡ action | web | ⚠️ unverified | API 测试工具 |
+| [pdf-reader](skills/action/file/pdf-reader/) | ⚡ action | file | ⚠️ unverified | PDF 读取器 |
+| [csv-json-converter](skills/action/file/csv-json-converter/) | ⚡ action | file | ⚠️ unverified | CSV/JSON 转换 |
+| [image-processor](skills/action/file/image-processor/) | ⚡ action | file | ⚠️ unverified | 图片处理 |
+| [log-analyzer](skills/action/file/log-analyzer/) | ⚡ action | file | ⚠️ unverified | 日志分析 |
+| [ssh-remote](skills/action/device/ssh-remote/) | ⚡ action | device | ⚠️ unverified | SSH 远程执行 |
+| [email-sender](skills/action/device/email-sender/) | ⚡ action | device | ⚠️ unverified | 邮件发送 |
+| [cron-scheduler](skills/core/cron-scheduler/) | 🧠 core | - | ⚠️ unverified | 定时任务调度 |
+| [token-estimator](skills/core/token-estimator/) | 🧠 core | - | ⚠️ unverified | Token 估算 |
+| [text-summarizer](skills/core/text-summarizer/) | 🧠 core | - | ⚠️ unverified | 文本摘要 |
+| [memory-extractor](skills/core/memory-extractor/) | 🧠 core | - | ⚠️ unverified | 记忆提取 |
+| [db-query](skills/core/db-query/) | 🧠 core | - | ⚠️ unverified | 数据库查询 |
+| [markdown-renderer](skills/identity/markdown-renderer/) | 🎭 identity | - | ⚠️ unverified | Markdown 渲染 |
+| [frontmatter-parser](skills/identity/frontmatter-parser/) | 🎭 identity | - | ⚠️ unverified | Frontmatter 解析 |
+| [ai-builder](skills/meta/ai-builder/) | 🧩 meta | ai-builder | ⚠️ unverified | AI 构建器 |
+| [contribute](skills/meta/contribute/) | 🧩 meta | contribute | ⚠️ unverified | 贡献 Skill |
+| [mcp-adapter](skills/meta/mcp-adapter/) | 🧩 meta | mcp-adapter | ⚠️ unverified | MCP 适配器 |
+
+### 验证状态说明
+
+| Status | 含义 | 谁提交 |
+|--------|------|--------|
+| ✅ verified | 代码已实际跑通，确认可用 | 实际验证过的用户 |
+| ⚠️ unverified | 代码未实际验证，可能存在 bug | 原作者 |
+
+### 如何验证 Skill？
+
+1. 选择一个 `unverified` 的 Skill
+2. 按照 SKILL.md 中的代码示例实际运行
+3. 如果发现 bug → 修复后提交 PR
+4. 修复版通过验证 → 状态改为 `verified`，作者更新为验证者
+
+详细格式见 [SKILL-FORMAT.md](SKILL-FORMAT.md)
 
 ---
 

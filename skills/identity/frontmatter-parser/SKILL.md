@@ -2,6 +2,7 @@
 name: frontmatter-parser
 layer: identity
 category: knowledge
+status: unverified
 description: >
   解析 YAML frontmatter，提取 Markdown 文件元数据。
   当用户需要读取文件头信息、提取文档属性、处理静态网站元数据时触发。

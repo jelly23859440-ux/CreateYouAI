@@ -2,6 +2,7 @@
 name: Web 抓取 + Markdown 转换
 layer: action
 category: web
+status: unverified
 description: >
   抓取网页内容，转换为 Markdown 格式。
   当用户想要获取网页内容、提取文章正文、将网页转为 Markdown、

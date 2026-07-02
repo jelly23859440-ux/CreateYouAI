@@ -2,6 +2,7 @@
 name: SSH 远程执行
 layer: action
 category: device
+status: unverified
 description: >
   连接远程服务器执行命令，支持密钥认证和密码认证。
   当用户需要远程执行命令、管理服务器、部署应用、检查服务器状态时触发。

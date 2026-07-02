@@ -2,6 +2,7 @@
 name: AI 构建器
 layer: meta
 category: ai-builder
+status: unverified
 description: >
   帮用户从 Skill 仓库中挑选合适的 Skill，组合成自己的 AI。
   当用户想要构建 AI、搭建智能体、创建自动化工作流、

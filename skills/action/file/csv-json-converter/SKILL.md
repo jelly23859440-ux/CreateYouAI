@@ -1,6 +1,8 @@
 ---
 name: csv-json-converter
+layer: action
 category: file
+status: unverified
 description: CSV 和 JSON 格式互相转换，支持大文件流式处理
 version: 1.0.0
 author: CreateYouAI

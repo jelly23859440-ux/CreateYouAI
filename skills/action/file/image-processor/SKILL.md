@@ -1,7 +1,9 @@
 ---
 name: image-processor
+layer: action
 category: file
-description: 图片处理工具，支持裁剪、缩放、格式转换和批量处理
+status: unverified
+description: 图片处理工具，支持格式转换、缩放、裁剪、水印、元数据读取
 version: 1.0.0
 author: CreateYouAI
 tags: [image, processing, resize, crop, format, batch]

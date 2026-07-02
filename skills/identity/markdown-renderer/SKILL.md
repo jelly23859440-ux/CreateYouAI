@@ -2,6 +2,7 @@
 name: markdown-renderer
 layer: identity
 category: knowledge
+status: unverified
 description: >
   将 Markdown 渲染为终端彩色输出，支持代码高亮、表格、列表。
   当用户需要在终端显示格式化文档、渲染 README、查看 Markdown 文件时触发。

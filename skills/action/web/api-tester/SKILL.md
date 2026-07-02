@@ -1,7 +1,9 @@
 ---
 name: api-tester
+layer: action
 category: web
-description: REST API 测试工具，支持 GET/POST/PUT/DELETE 请求
+status: unverified
+description: API 测试工具，支持请求构建、响应验证、自动化测试
 version: 1.0.0
 author: CreateYouAI
 tags: [api, rest, http, testing, requests]

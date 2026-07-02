@@ -2,6 +2,7 @@
 name: 代码搜索
 layer: action
 category: code
+status: unverified
 description: 使用 ripgrep 搜索代码库，支持正则表达式和文件类型过滤
 version: 1.2
 ---

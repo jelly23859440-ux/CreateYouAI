@@ -1,7 +1,8 @@
 ---
-name: mcp-adapter
+name: MCP 适配器
 layer: meta
-category: ai-builder
+category: mcp
+status: unverified
 description: >
   将 MCP 工具转换为本地工具，支持工具发现和调用。
   当用户需要连接 MCP 服务器、适配外部工具、构建工具链时触发。

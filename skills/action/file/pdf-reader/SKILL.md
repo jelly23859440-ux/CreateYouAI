@@ -2,6 +2,7 @@
 name: PDF 读取器
 layer: action
 category: file
+status: unverified
 description: >
   读取 PDF 文件，提取文本内容、页面信息和图片。
   当用户想要读取 PDF、提取 PDF 文本、解析 PDF 内容、

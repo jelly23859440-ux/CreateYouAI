@@ -2,6 +2,7 @@
 name: 文本摘要生成器
 layer: core
 category: memory
+status: unverified
 description: >
   对长文本生成摘要，支持抽取式和生成式两种摘要方式。
   当用户需要总结文章、提取要点、压缩文本、生成摘要时触发。

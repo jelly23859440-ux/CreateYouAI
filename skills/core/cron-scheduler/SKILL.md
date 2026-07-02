@@ -2,6 +2,7 @@
 name: Cron 表达式解析器
 layer: core
 category: reasoning
+status: unverified
 description: >
   解析标准 cron 表达式，计算下次执行时间。
   当用户想要设置定时任务、解析 cron 表达式、查看定时计划、

@@ -2,6 +2,7 @@
 name: Token 估算器
 layer: core
 category: reasoning
+status: unverified
 description: >
   估算文本的 token 数量，支持多种模型的计算方式。
   当用户想要估算 token 用量、计算文本长度、预估 API 费用、

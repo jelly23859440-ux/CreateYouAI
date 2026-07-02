@@ -2,6 +2,7 @@
 name: 邮件发送
 layer: action
 category: device
+status: unverified
 description: >
   发送文本和 HTML 邮件，支持附件功能。
   当用户需要发送邮件、通知、报告、自动化邮件、批量发送时触发。

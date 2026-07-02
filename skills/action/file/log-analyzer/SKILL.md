@@ -1,7 +1,9 @@
 ---
 name: log-analyzer
+layer: action
 category: file
-description: 解析日志文件，提取错误、警告和统计信息
+status: unverified
+description: 日志分析工具，支持多种日志格式解析、错误统计、趋势分析
 version: 1.0.0
 author: CreateYouAI
 tags: [log, analysis, parser, debugging, statistics]

@@ -31,6 +31,7 @@ skills/<layer>/<category>/<skill-name>/
 name: 技能名称
 layer: action
 category: device
+status: unverified
 description: >
   一句话描述这个技能做什么。
   当用户提出以下意图时触发：关键词1、关键词2、关键词3。
@@ -43,8 +44,21 @@ description: >
 |------|------|------|------|
 | `name` | string | ✅ | 技能名称，简短 |
 | `layer` | string | ✅ | 所属层级：core / action / identity / meta / scenarios |
-| `category` | string | ✅ | 所属分类：conversation / reasoning / memory / code / tool / file / web / device / personality / safety / knowledge / ai-builder / skill-learn / contribute / coding-ai / research-ai / creative-ai / daily-ai |
-| `description` | string | ✅ | 功能描述 + 触发关键词，AI 用这个判断是否需要加载此 Skill |
+| `category` | string | ✅ | 所属分类 |
+| `status` | string | ✅ | 验证状态：`unverified` / `verified` |
+| `description` | string | ✅ | 功能描述 + 触发关键词 |
+
+**status 说明**：
+
+| 状态 | 含义 | 谁能提交 |
+|------|------|----------|
+| `unverified` | 代码未实际验证，可能存在 bug | 任何人 |
+| `verified` | 代码已实际跑通，确认可用 | 实际验证过的用户 |
+
+**验证流程**：
+1. 原作者提交 `unverified` 版本
+2. 其他用户使用后发现 bug → 提交修复版
+3. 修复版通过验证 → 状态改为 `verified`，作者更新为验证者
 
 ### 2. 正文结构（建议）
 

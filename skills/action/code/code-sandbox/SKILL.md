@@ -2,6 +2,7 @@
 name: 代码沙箱
 layer: action
 category: code
+status: unverified
 version: 1.1
 description: >
   在隔离环境中安全执行 Python/Node.js 代码。

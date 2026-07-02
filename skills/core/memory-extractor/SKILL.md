@@ -2,6 +2,7 @@
 name: 记忆提取器
 layer: core
 category: memory
+status: unverified
 description: >
   从对话中提取关键信息，支持事实、事件、知识等类型的记忆。
   当用户需要分析对话、提取要点、整理聊天记录、构建知识库时触发。

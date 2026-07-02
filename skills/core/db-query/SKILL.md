@@ -1,7 +1,8 @@
 ---
 name: 数据库查询助手
 layer: core
-category: reasoning
+category: memory
+status: unverified
 description: >
   连接 SQLite/PostgreSQL 数据库，执行查询并格式化结果。
   当用户需要查询数据库、分析数据、执行 SQL、查看表结构时触发。

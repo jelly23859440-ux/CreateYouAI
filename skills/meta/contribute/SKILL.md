@@ -2,6 +2,7 @@
 name: 贡献 Skill 到 CreateYouAI
 layer: meta
 category: contribute
+status: unverified
 description: >
   帮助用户向 CreateYouAI 仓库提交新的 Skill。
   当用户想要分享自己的 Skill、贡献代码、提交 PR 时触发。
