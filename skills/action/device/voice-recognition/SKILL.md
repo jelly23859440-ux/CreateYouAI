@@ -1,5 +1,7 @@
 ---
 name: 本地语音识别
+layer: action
+category: device
 description: >
   为 Electron / 网页 / Python 桌面应用添加本地语音识别功能。
   支持四种录音方案（naudiodon、SoX、Python sounddevice、MediaRecorder），

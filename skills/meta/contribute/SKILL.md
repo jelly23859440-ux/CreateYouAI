@@ -1,7 +1,9 @@
 ---
-name: 贡献 Skill 到 youAI
+name: 贡献 Skill 到 CreateYouAI
+layer: meta
+category: contribute
 description: >
-  帮助用户向 youAI 仓库提交新的 Skill。
+  帮助用户向 CreateYouAI 仓库提交新的 Skill。
   当用户想要分享自己的 Skill、贡献代码、提交 PR 时触发。
   关键词：贡献、提交、PR、分享 skill、添加 skill、contribute。
 ---
@@ -44,18 +46,33 @@ git remote -v
 
 ### Step 3：放入正确目录
 
-根据 Skill 的 category 放入对应目录：
+根据 Skill 的 layer 和 category 放入对应目录：
 
 ```
 skills/
-├── audio/          # 语音、音频相关
-├── code/           # 编程辅助
-├── data/           # 数据处理
-├── file/           # 文件操作
-├── web/            # 网络请求
-├── ui/             # 界面组件
-├── other/          # 其他
-└── contribute-skill/  # 本 Skill
+├── core/              🧠 核心能力层
+│   ├── conversation/    💬 对话能力
+│   ├── reasoning/       🧩 推理能力
+│   └── memory/          🧠 记忆能力
+├── action/            ⚡ 执行能力层
+│   ├── code/            💻 代码能力
+│   ├── tool/            🔧 工具调用
+│   ├── file/            📁 文件操作
+│   ├── web/             🌐 网络能力
+│   └── device/          📱 设备控制
+├── identity/          🎭 身份层
+│   ├── personality/     🎭 人格设定
+│   ├── safety/          🛡️ 安全护栏
+│   └── knowledge/       📚 知识领域
+├── meta/              🧩 元能力层
+│   ├── ai-builder/      🧩 智能组合
+│   ├── skill-learn/     📖 技能学习
+│   └── contribute/      🤝 社区贡献
+└── scenarios/         🎯 场景层
+    ├── coding-ai/       💻 编程助手模板
+    ├── research-ai/     🔬 研究助手模板
+    ├── creative-ai/     🎨 创意助手模板
+    └── daily-ai/        🏠 日常助手模板
 ```
 
 如果没有对应目录，创建一个。

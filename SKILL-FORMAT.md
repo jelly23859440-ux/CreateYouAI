@@ -7,10 +7,20 @@
 ## 文件结构
 
 ```
-skills/<skill-name>/
+skills/<layer>/<category>/<skill-name>/
 ├── SKILL.md              # 必须：给 AI 的指令文档
 └── scripts/              # 可选：可执行脚本（Python/Shell/Node 等）
 ```
+
+**层级说明**：
+
+| Layer | Categories | 说明 |
+|-------|------------|------|
+| `core` | conversation, reasoning, memory | 核心能力层 —— Agent 的"大脑" |
+| `action` | code, tool, file, web, device | 执行能力层 —— Agent 的"手脚" |
+| `identity` | personality, safety, knowledge | 身份层 —— Agent "是谁" |
+| `meta` | ai-builder, skill-learn, contribute | 元能力层 —— 能力的能力 |
+| `scenarios` | coding-ai, research-ai, creative-ai, daily-ai | 场景层 —— 预设组合模板 |
 
 ## SKILL.md 格式
 
@@ -19,6 +29,8 @@ skills/<skill-name>/
 ```yaml
 ---
 name: 技能名称
+layer: action
+category: device
 description: >
   一句话描述这个技能做什么。
   当用户提出以下意图时触发：关键词1、关键词2、关键词3。
@@ -30,6 +42,8 @@ description: >
 | 字段 | 类型 | 必须 | 说明 |
 |------|------|------|------|
 | `name` | string | ✅ | 技能名称，简短 |
+| `layer` | string | ✅ | 所属层级：core / action / identity / meta / scenarios |
+| `category` | string | ✅ | 所属分类：conversation / reasoning / memory / code / tool / file / web / device / personality / safety / knowledge / ai-builder / skill-learn / contribute / coding-ai / research-ai / creative-ai / daily-ai |
 | `description` | string | ✅ | 功能描述 + 触发关键词，AI 用这个判断是否需要加载此 Skill |
 
 ### 2. 正文结构（建议）
