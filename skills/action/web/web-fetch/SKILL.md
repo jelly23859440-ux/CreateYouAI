@@ -76,7 +76,8 @@ def fetch_url(
     except requests.exceptions.Timeout:
         return {"url": url, "status": 0, "html": "", "title": "", "error": "请求超时"}
     except requests.exceptions.HTTPError as e:
-        return {"url": url, "status": resp.status_code, "html": "", "title": "", "error": f"HTTP {resp.status_code}"}
+        status = getattr(e.response, 'status_code', 0) if hasattr(e, 'response') else 0
+        return {"url": url, "status": status, "html": "", "title": "", "error": f"HTTP {status}"}
     except requests.exceptions.RequestException as e:
         return {"url": url, "status": 0, "html": "", "title": "", "error": str(e)}
 
@@ -224,6 +225,12 @@ if __name__ == "__main__":
 **原因**：目标 HTML 结构不规范，正文提取失败。
 
 **解决**：手动指定 CSS 选择器，如 `soup.find("div", id="article-body")`。
+
+### 问题 5：缓存返回旧内容
+
+**原因**：缓存基于 URL 而非内容，同一 URL 内容更新后缓存不会自动失效。
+
+**解决**：等待 `max_age` 过期，或手动删除 `.web_cache` 目录清除缓存。
 
 ## 依赖
 
