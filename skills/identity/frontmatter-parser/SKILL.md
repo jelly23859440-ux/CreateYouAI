@@ -7,6 +7,9 @@ description: >
   解析 YAML frontmatter，提取 Markdown 文件元数据。
   当用户需要读取文件头信息、提取文档属性、处理静态网站元数据时触发。
   关键词：YAML 解析、frontmatter、元数据提取、Markdown 头部、文档属性。
+requirements:
+  - name: pyyaml
+    version: ">=6.0.0"
 ---
 
 # Frontmatter 解析器
@@ -46,13 +49,17 @@ python -c "import yaml; print(yaml.__version__)"
 
 ### 基础用法
 
+> **注意**：基础函数使用 split('---')，如果正文包含 --- 水平分割线会截断。
+> 请使用 `FrontmatterParser` 类处理复杂文件。
+
 ```python
+import re
 import yaml
 from typing import Dict, Any, Optional, Tuple
 
 def parse_frontmatter(content: str) -> Tuple[Dict[str, Any], str]:
     """
-    解析 Markdown 文件的 frontmatter
+    解析 Markdown 文件的 frontmatter（使用正则，更可靠）
     
     Args:
         content: 文件内容（字符串）
@@ -60,17 +67,18 @@ def parse_frontmatter(content: str) -> Tuple[Dict[str, Any], str]:
     Returns:
         (元数据字典, 正文内容)
     """
-    if content.startswith('---'):
-        parts = content.split('---', 2)
-        if len(parts) >= 3:
-            frontmatter_yaml = parts[1].strip()
-            body = parts[2].strip()
-            
-            try:
-                metadata = yaml.safe_load(frontmatter_yaml) or {}
-                return metadata, body
-            except yaml.YAMLError:
-                return {}, content
+    # 使用正则匹配，避免正文中的 --- 被误截断
+    match = re.match(r'^---\s*\n(.*?)\n---\s*\n', content, re.DOTALL)
+    
+    if match:
+        frontmatter_yaml = match.group(1)
+        body = content[match.end():]
+        
+        try:
+            metadata = yaml.safe_load(frontmatter_yaml) or {}
+            return metadata, body
+        except yaml.YAMLError:
+            return {}, content
     
     return {}, content
 
@@ -141,7 +149,7 @@ class FrontmatterParser:
         """
         self.separator = separator
         self._compiled_pattern = re.compile(
-            rf'^{re.escape(separator)}\s*\n(.*?)\n{re.escape(separator)}\s*\n',
+            rf'^{re.escape(separator)}\s*\n(.*?)\n{re.escape(separator)}\s*(?:\n|$)',
             re.DOTALL | re.MULTILINE
         )
     
@@ -262,18 +270,23 @@ class FrontmatterParser:
         
         Args:
             content: 文件内容
-            date_field: 日期字段名
+            field: 日期字段名
             
         Returns:
             datetime 对象或 None
         """
+        from datetime import date as date_type
+        
         date_str = self.extract_field(content, field)
         
         if not date_str:
             return None
         
+        # 处理 datetime 和 date 类型
         if isinstance(date_str, datetime):
             return date_str
+        if isinstance(date_str, date_type):
+            return datetime.combine(date_str, datetime.min.time())
         
         # 尝试多种日期格式
         formats = [
