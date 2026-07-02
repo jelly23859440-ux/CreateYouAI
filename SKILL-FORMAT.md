@@ -6,10 +6,55 @@
 
 ## 文件结构
 
+### 单一实现
+
 ```
 skills/<layer>/<category>/<skill-name>/
 ├── SKILL.md              # 必须：给 AI 的指令文档
 └── scripts/              # 可选：可执行脚本（Python/Shell/Node 等）
+```
+
+### 多实现并列（同一功能的不同技术路径）
+
+```
+skills/<layer>/<category>/<skill-name>/
+├── _index.md             # 必须：方案对比 + 选择建议
+├── <variant-a>/
+│   └── SKILL.md          # 方案 A
+├── <variant-b>/
+│   └── SKILL.md          # 方案 B
+└── <variant-c>/
+    └── SKILL.md          # 方案 C
+```
+
+**示例**：
+```
+skills/action/device/voice-recognition/
+├── _index.md             # 方案对比表
+├── funasr/
+│   └── SKILL.md          # 本地，中文优化
+├── whisper/
+│   └── SKILL.md          # 本地，多语言
+└── google/
+    └── SKILL.md          # 云端 API
+```
+
+**`_index.md` 格式**：
+```markdown
+# 功能名称
+
+## 方案对比
+
+| 方案 | 依赖 | 特点 | 适用场景 |
+|------|------|------|----------|
+| [方案A](variant-a/) | 依赖列表 | 特点描述 | 适用场景 |
+| [方案B](variant-b/) | 依赖列表 | 特点描述 | 适用场景 |
+
+## 选择建议
+
+AI 根据用户环境自动选择：
+- 条件1 → 方案A
+- 条件2 → 方案B
 ```
 
 **层级说明**：

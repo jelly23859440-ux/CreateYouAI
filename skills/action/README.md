@@ -2,6 +2,21 @@
 
 Agent 能"做事"的能力——代码、网络、文件、设备操作。
 
+## 多实现并列说明
+
+同一功能可能有多个实现方案（如语音识别有 funasr、whisper、google 三种）。这种情况下：
+
+```
+功能目录/
+├── _index.md        # 方案对比表 + 选择建议
+├── variant-a/
+│   └── SKILL.md     # 方案 A
+└── variant-b/
+    └── SKILL.md     # 方案 B
+```
+
+AI 根据用户环境自动选择最佳方案。
+
 ## Skills
 
 ### Code / 代码操作
@@ -10,7 +25,7 @@ Agent 能"做事"的能力——代码、网络、文件、设备操作。
 |-------|------|------|
 | [git-diff-analyzer](code/git-diff-analyzer/SKILL.md) | git CLI | Git Diff 分析器，生成结构化变更报告 |
 | [code-search](code/code-search/SKILL.md) | ripgrep | 代码搜索工具，支持正则表达式 |
-| [code-sandbox](code/code-sandbox/SKILL.md) | Python/Node.js | 代码沙箱执行，安全运行用户代码 |
+| [code-sandbox](code/code-sandbox/SKILL.md) | Docker/bwrap | 代码沙箱执行，安全运行用户代码 |
 
 ### Web / 网络操作
 
@@ -32,7 +47,7 @@ Agent 能"做事"的能力——代码、网络、文件、设备操作。
 
 | Skill | 依赖 | 说明 |
 |-------|------|------|
-| [voice-recognition](device/voice-recognition/SKILL.md) | Python + funasr | 本地语音识别（funasr SenseVoiceSmall） |
+| [voice-recognition](device/voice-recognition/) | Python | 本地语音识别（多方案：funasr/whisper/google） |
 | [ssh-remote](device/ssh-remote/SKILL.md) | paramiko | SSH 远程执行 + SFTP |
 | [email-sender](device/email-sender/SKILL.md) | 无（内置） | 邮件发送（文本/HTML/附件） |
 

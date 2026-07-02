@@ -31,10 +31,19 @@ description: >
 列出仓库中所有 Skill：
 
 ```bash
+# 查找所有 SKILL.md
 find skills/ -name "SKILL.md" -type f
+
+# 查找所有 _index.md（多实现并列的方案索引）
+find skills/ -name "_index.md" -type f
 ```
 
 读取每个 SKILL.md 的 frontmatter，获取 name、layer、category、description。
+
+**处理多实现并列**：
+- 如果功能目录下有 `_index.md`，先读取 `_index.md` 获取方案对比
+- 根据用户环境推荐具体方案
+- 加载对应方案的 SKILL.md
 
 ### Step 3：推荐 Skill 组合
 
@@ -92,6 +101,18 @@ find skills/ -name "SKILL.md" -type f
 ### Step 5：逐步执行
 
 按计划逐个安装 Skill，每个 Skill 安装后验证。
+
+### 处理多实现并列的 Skill
+
+当功能目录下有 `_index.md` 时，说明该功能有多个实现方案：
+
+1. 读取 `_index.md` 获取方案对比表
+2. 问用户环境和技术偏好
+3. 根据条件推荐具体方案：
+   - 用户有 Python + 中文需求 → funasr
+   - 用户有多语言需求 → whisper
+   - 用户只想快速接入 → 云端 API
+4. 加载对应方案的 SKILL.md
 
 ## 示例对话
 
