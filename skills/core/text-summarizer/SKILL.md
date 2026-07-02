@@ -39,7 +39,7 @@ requirements:
 
 ```python
 import re
-import math
+import string
 from collections import Counter
 from typing import List, Tuple
 
@@ -167,7 +167,6 @@ if __name__ == "__main__":
 
 ```python
 import os
-import re
 from typing import Optional, List
 
 def _split_sentences_fallback(text: str) -> List[str]:
@@ -233,8 +232,10 @@ def generate_summary(
         return response.choices[0].message.content.strip()
     except Exception as e:
         # 降级：返回原文前 N 句作为摘要
-        sentences = split_sentences(text)
-        return ' '.join(sentences[:3]) if sentences else text[:200]
+        sentences = _split_sentences_fallback(text)
+        has_english = any(re.search(r'[a-zA-Z]', s) for s in sentences)
+        separator = ' ' if has_english else ''
+        return separator.join(sentences[:3]) if sentences else text[:200]
 
 # 使用示例
 if __name__ == "__main__":
