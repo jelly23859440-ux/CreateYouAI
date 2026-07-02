@@ -8,9 +8,9 @@ description: >
   关键词：贡献、提交、PR、分享 skill、添加 skill、contribute。
 ---
 
-# 向 youAI 贡献 Skill
+# 向 CreateYouAI 贡献 Skill
 
-帮用户把写好的 Skill 提交到 youAI 仓库。
+帮用户把写好的 Skill 提交到 CreateYouAI 仓库。
 
 ## 执行流程
 
@@ -21,9 +21,9 @@ git remote -v
 ```
 
 如果没有 Fork，先引导用户 Fork：
-1. 打开 https://github.com/jelly23859440-ux/youAI
+1. 打开 https://github.com/jelly23859440-ux/CreateYouAI
 2. 点右上角 Fork
-3. 克隆 Fork 后的仓库：`git clone https://github.com/<用户名>/youAI.git`
+3. 克隆 Fork 后的仓库：`git clone https://github.com/<用户名>/CreateYouAI.git`
 
 ### Step 2：检查 SKILL.md 格式
 
@@ -119,7 +119,7 @@ EOF
 ```
 
 如果没有 `gh` 命令，告诉用户手动去 GitHub 创建 PR：
-1. 打开 https://github.com/jelly23859440-ux/youAI
+1. 打开 https://github.com/jelly23859440-ux/CreateYouAI
 2. 点 "Compare & pull request"
 3. 填写 PR 标题和描述
 
