@@ -39,6 +39,11 @@ Have an idea for an AI skill but can't build it yourself? Submit an idea and let
 | [memory-system-design](skills/meta/ai-builder/) | 🧩 meta | 智能组合 | Design and build layered memory systems / 设计构建分层记忆系统 |
 | [query-engine-design](skills/meta/ai-builder/) | 🧩 meta | 智能组合 | Design and build LLM query engines / 设计构建LLM查询引擎 |
 | [skill-system-design](skills/meta/ai-builder/) | 🧩 meta | 智能组合 | Design and build skill loading and execution systems / 设计构建Skill加载执行系统 |
+| [state-management-design](skills/meta/ai-builder/) | 🧩 meta | 智能组合 | Design and build state management systems / 设计构建状态管理系统 |
+| [permission-system-design](skills/meta/ai-builder/) | 🧩 meta | 智能组合 | Design and build permission control systems / 设计构建权限控制系统 |
+| [command-system-design](skills/meta/ai-builder/) | 🧩 meta | 智能组合 | Design and build command systems / 设计构建命令系统 |
+| [service-layer-design](skills/meta/ai-builder/) | 🧩 meta | 智能组合 | Design and build service layer architecture / 设计构建服务层架构 |
+| [ide-integration-design](skills/meta/ai-builder/) | 🧩 meta | 智能组合 | Design and build IDE integration bridge systems / 设计构建IDE集成桥接系统 |
 | [contribute](skills/meta/contribute/) | 🧩 meta | 社区贡献 | Submit new skills to the repository / 向仓库提交新 Skill |
 | [voice-recognition](skills/action/device/voice-recognition/) | ⚡ action | 设备交互 | Local speech recognition / 本地语音识别 |
 
