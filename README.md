@@ -23,6 +23,54 @@ Skill 是一份给 AI 看的说明书。用户说"我要做 X"，AI 读取对应
 
 ---
 
+## Contribute / 贡献 Skill
+
+**Welcome to contribute! We need your skills. / 欢迎贡献！我们需要你的 Skill。**
+
+> Tell your AI: "我想贡献一个 skill" / 告诉你的 AI："我想贡献一个 skill"
+>
+> AI 会读取 `contribute` Skill，帮你完成整个贡献流程。
+
+### 快速贡献流程
+
+1. **Fork** this repository / Fork 本仓库
+2. **Write** a Skill following [SKILL-FORMAT.md](SKILL-FORMAT.md) / 按 SKILL-FORMAT.md 写 Skill
+3. **Submit** a PR / 提交 PR
+
+### 三种贡献方式
+
+| 方式 | 适合谁 | 说明 |
+|------|--------|------|
+| [贡献 Skill](skills/meta/contribute/SKILL.md) | 有代码能力 | 写一个可运行的 Skill |
+| [提想法](ideas/) | 有想法但不会写 | 提交想法，让社区帮你实现 |
+| [反馈问题](https://github.com/jelly23859440-ux/CreateYouAI/issues) | 所有人 | 报告问题或建议改进 |
+
+### Skill 格式要求
+
+```yaml
+---
+name: 技能名称
+layer: action          # core / action / identity / meta
+category: code         # code / web / file / device / ...
+description: >
+  一句话描述 + 触发关键词
+---
+```
+
+详细格式见 [SKILL-FORMAT.md](SKILL-FORMAT.md)
+
+---
+
+## Quick Start / 快速开始
+
+Tell your AI: "我想做一个 XX 的 AI" / 告诉你的 AI："我想做一个 XX 的 AI"
+
+The AI will read the `ai-builder` Skill and automatically pick the right combination from this repository.
+
+AI 会读取 `ai-builder` Skill，自动从仓库挑选合适的组合。
+
+---
+
 ## Skill Overview / 技能概览
 
 | Layer | Category | Count | Description |
@@ -66,38 +114,6 @@ skills/
     ├── markdown-renderer/📄 Markdown 渲染
     └── frontmatter-parser/📋 Frontmatter 解析
 ```
-
----
-
-## Quick Start / 快速开始
-
-Tell your AI: "我想做一个 XX 的 AI" / 告诉你的 AI："我想做一个 XX 的 AI"
-
-The AI will read the `ai-builder` Skill and automatically pick the right combination from this repository.
-
-AI 会读取 `ai-builder` Skill，自动从仓库挑选合适的组合。
-
----
-
-## Ideas / 有想法？
-
-Have an idea for an AI skill but can't build it yourself? Submit an idea and let the community build it.
-
-有 AI 想法但自己不会写？去 [ideas/](ideas/) 提想法，让社区帮你实现。
-
----
-
-## Contributing / 贡献
-
-**Welcome to contribute! We need your skills. / 欢迎贡献！我们需要你的 Skill。**
-
-1. Fork this repository / Fork 本仓库
-2. Write a Skill following [SKILL-FORMAT.md](SKILL-FORMAT.md) / 按 SKILL-FORMAT.md 写 Skill
-3. Submit a PR / 提交 PR
-
-Or tell your AI: "我想贡献一个 skill" / 或告诉你的 AI："我想贡献一个 skill"
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
 ---
 
