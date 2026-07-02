@@ -43,10 +43,15 @@ import math
 from collections import Counter
 from typing import List, Tuple
 
+import string
+
+# 中文标点
+CN_PUNCT = '。！？、；：""''（）【】《》…—·'
+
 # 中英文停用词表
 STOP_WORDS = {
     # 中文
-    '的', '了', '是', '在', '我', '有', '和', '就', '不', '人', '都', '一', '一个',
+    '的', '了', '是', '在', '我', '有', '和', '就', '不', '人', '都', '一',
     '上', '也', '很', '到', '说', '要', '去', '你', '会', '着', '没有', '看', '好',
     '自己', '这', '他', '她', '它', '们', '那', '被', '让', '把', '从', '对',
     # 英文
@@ -75,7 +80,7 @@ def extractive_summary(text: str, num_sentences: int = 3) -> str:
         return ""
     
     # 纯标点检查
-    cleaned = re.sub(r'[\s\p{P}]', '', text)
+    cleaned = re.sub(r'[\s' + string.punctuation + CN_PUNCT + r']', '', text)
     if not cleaned:
         return text
     
@@ -151,6 +156,8 @@ if __name__ == "__main__":
 
 ### 生成式摘要：基于 LLM API
 
+> **注意**：本代码依赖上方定义的 `split_sentences` 函数。
+
 ```python
 import os
 from typing import Optional
@@ -202,22 +209,12 @@ def generate_summary(
 请直接输出摘要内容，不要加前缀："""
     
     try:
-        # 尝试使用 response_format，不支持时 fallback
-        try:
-            response = client.chat.completions.create(
-                model=model,
-                messages=[{"role": "user", "content": prompt}],
-                temperature=0.3,
-                max_tokens=500,
-                response_format={"type": "json_object"}
-            )
-        except Exception:
-            response = client.chat.completions.create(
-                model=model,
-                messages=[{"role": "user", "content": prompt}],
-                temperature=0.3,
-                max_tokens=500
-            )
+        response = client.chat.completions.create(
+            model=model,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.3,
+            max_tokens=500
+        )
         
         return response.choices[0].message.content.strip()
     except Exception as e:
