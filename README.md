@@ -21,31 +21,51 @@ Skill 是一份给 AI 看的说明书。用户说"我要做 X"，AI 读取对应
 3. AI picks the right combination / AI 挑选合适的组合
 4. AI helps build it step by step / AI 帮用户逐步构建
 
-## Ideas / 有想法？
+---
 
-Have an idea for an AI skill but can't build it yourself? Submit an idea and let the community build it.
+## Skill Overview / 技能概览
 
-有 AI 想法但自己不会写？去 [ideas/](ideas/) 提想法，让社区帮你实现。
+| Layer | Category | Count | Description |
+|-------|----------|-------|-------------|
+| 🧩 meta | ai-builder | 10 | 智能组合（架构设计指南） |
+| 🧩 meta | contribute | 1 | 社区贡献 |
+| 🧩 meta | mcp-adapter | 1 | MCP 工具适配 |
+| ⚡ action | code | 3 | 代码操作（沙箱、搜索、Git Diff） |
+| ⚡ action | web | 2 | 网络操作（抓取、API 测试） |
+| ⚡ action | file | 4 | 文件操作（PDF、CSV、图片、日志） |
+| ⚡ action | device | 3 | 设备交互（语音、SSH、邮件） |
+| 🧠 core | - | 5 | 核心能力（定时任务、Token、摘要、记忆、数据库） |
+| 🎭 identity | - | 2 | 身份层（Markdown 渲染、Frontmatter 解析） |
+| **Total** | | **31** | |
 
 ---
 
-## Available Skills
+## Skill Categories / 分类详情
 
-| Skill | Layer | Category | Description |
-|-------|-------|----------|-------------|
-| [ai-builder](skills/meta/ai-builder/) | 🧩 meta | 智能组合 | Scan skills and help users build their AI / 扫描仓库，帮用户挑选组合 Skill |
-| [tool-system-builder](skills/meta/ai-builder/) | 🧩 meta | 智能组合 | Design and build modular tool systems / 设计构建模块化工具系统 |
-| [multi-agent-coordinator](skills/meta/ai-builder/) | 🧩 meta | 智能组合 | Design and build multi-agent coordination systems / 设计构建多Agent协调系统 |
-| [memory-system-design](skills/meta/ai-builder/) | 🧩 meta | 智能组合 | Design and build layered memory systems / 设计构建分层记忆系统 |
-| [query-engine-design](skills/meta/ai-builder/) | 🧩 meta | 智能组合 | Design and build LLM query engines / 设计构建LLM查询引擎 |
-| [skill-system-design](skills/meta/ai-builder/) | 🧩 meta | 智能组合 | Design and build skill loading and execution systems / 设计构建Skill加载执行系统 |
-| [state-management-design](skills/meta/ai-builder/) | 🧩 meta | 智能组合 | Design and build state management systems / 设计构建状态管理系统 |
-| [permission-system-design](skills/meta/ai-builder/) | 🧩 meta | 智能组合 | Design and build permission control systems / 设计构建权限控制系统 |
-| [command-system-design](skills/meta/ai-builder/) | 🧩 meta | 智能组合 | Design and build command systems / 设计构建命令系统 |
-| [service-layer-design](skills/meta/ai-builder/) | 🧩 meta | 智能组合 | Design and build service layer architecture / 设计构建服务层架构 |
-| [ide-integration-design](skills/meta/ai-builder/) | 🧩 meta | 智能组合 | Design and build IDE integration bridge systems / 设计构建IDE集成桥接系统 |
-| [contribute](skills/meta/contribute/) | 🧩 meta | 社区贡献 | Submit new skills to the repository / 向仓库提交新 Skill |
-| [voice-recognition](skills/action/device/voice-recognition/) | ⚡ action | 设备交互 | Local speech recognition / 本地语音识别 |
+```
+skills/
+├── meta/              🧩 元能力层（12 个）
+│   ├── ai-builder/      🧩 智能组合（10 个架构设计）
+│   ├── contribute/      🤝 社区贡献
+│   └── mcp-adapter/     🔌 MCP 工具适配
+│
+├── action/            ⚡ 执行能力层（12 个）
+│   ├── code/            💻 代码操作（3 个）
+│   ├── web/             🌐 网络操作（2 个）
+│   ├── file/            📁 文件操作（4 个）
+│   └── device/          📱 设备交互（3 个）
+│
+├── core/              🧠 核心能力层（5 个）
+│   ├── cron-scheduler/  ⏰ 定时任务
+│   ├── token-estimator/ 🔢 Token 估算
+│   ├── text-summarizer/ 📝 文本摘要
+│   ├── memory-extractor/🧠 记忆提取
+│   └── db-query/        🗄️ 数据库查询
+│
+└── identity/          🎭 身份层（2 个）
+    ├── markdown-renderer/📄 Markdown 渲染
+    └── frontmatter-parser/📋 Frontmatter 解析
+```
 
 ---
 
@@ -59,59 +79,11 @@ AI 会读取 `ai-builder` Skill，自动从仓库挑选合适的组合。
 
 ---
 
-## Skill Architecture / 能力架构
+## Ideas / 有想法？
 
-CreateYouAI organizes skills by what an AI Agent actually needs, not by technical domain.
+Have an idea for an AI skill but can't build it yourself? Submit an idea and let the community build it.
 
-CreateYouAI 按照 AI Agent 真正需要的能力来组织 Skill，而非按技术领域分类。
-
-```
-skills/
-├── core/              🧠 核心能力层 —— 没有这些，Agent 不成立
-│   ├── conversation/    💬 对话能力（多轮、上下文、意图识别）
-│   ├── reasoning/       🧩 推理能力（规划、决策、反思）
-│   └── memory/          🧠 记忆能力（热/温/冷、检索、整理）
-│
-├── action/            ⚡ 执行能力层 —— Agent 能"做事"
-│   ├── code/            💻 代码能力（生成、调试、重构）
-│   ├── tool/            🔧 工具调用（CLI、API、MCP）
-│   ├── file/            📁 文件操作（读写、搜索、管理）
-│   ├── web/             🌐 网络能力（浏览、抓取、搜索）
-│   └── device/          📱 设备控制（语音、屏幕、硬件）
-│
-├── identity/          🎭 身份层 —— Agent "是谁"
-│   ├── personality/     🎭 人格设定（角色、语气、风格）
-│   ├── safety/          🛡️ 安全护栏（规则、过滤、限制）
-│   └── knowledge/       📚 知识领域（专业、背景、偏好）
-│
-├── meta/              🧩 元能力层 —— 能力的能力
-│   ├── ai-builder/      🧩 智能组合（扫描、挑选、组装）
-│   ├── skill-learn/     📖 技能学习（从外部学习新能力）
-│   └── contribute/      🤝 社区贡献（提交、审核、分享）
-│
-└── scenarios/         🎯 场景层 —— 预设组合模板
-    ├── coding-ai/       💻 编程助手模板
-    ├── research-ai/     🔬 研究助手模板
-    ├── creative-ai/     🎨 创意助手模板
-    └── daily-ai/        🏠 日常助手模板
-```
-
-### Layer Logic / 分层逻辑
-
-| Layer | Logic | User Need |
-|-------|-------|-----------|
-| **core** | Agent's "brain" — essential | "I want an AI that can chat and remember things" |
-| **action** | Agent's "hands" — add as needed | "I want an AI that can write code and browse the web" |
-| **identity** | Agent's "character" — optional | "I want a professional/fun/safe AI" |
-| **meta** | Capability extension | "I want an AI that can learn new skills" |
-| **scenarios** | Quick-start templates | "I want a coding assistant, ready to use" |
-
-### Design Principles / 设计原则
-
-1. **Capabilities, not features** — Skills are organized by what the Agent needs, not by technical domain
-2. **Layered composition** — Start with core, add action/identity as needed
-3. **Scenario templates** — Pre-built combinations for common use cases
-4. **Community-driven** — Anyone can contribute skills to any layer
+有 AI 想法但自己不会写？去 [ideas/](ideas/) 提想法，让社区帮你实现。
 
 ---
 
