@@ -107,10 +107,14 @@ class APITester:
             auth_type: 认证类型 ("bearer", "basic")
             credential: 认证凭据
         """
+        # 清除之前的认证配置
+        self.session.auth = None
+        if "Authorization" in self.session.headers:
+            del self.session.headers["Authorization"]
+        
         if auth_type.lower() == "bearer":
             self.session.headers["Authorization"] = f"Bearer {credential}"
         elif auth_type.lower() == "basic":
-            # 使用 requests 内置的 BasicAuth
             if ":" in credential:
                 username, password = credential.split(":", 1)
             else:
@@ -231,10 +235,11 @@ class APITester:
     def delete(
         self,
         endpoint: str,
+        params: Optional[Dict[str, str]] = None,
         headers: Optional[Dict[str, str]] = None
     ) -> APIResponse:
         """发送 DELETE 请求"""
-        return self.request("DELETE", endpoint, headers=headers)
+        return self.request("DELETE", endpoint, params=params, headers=headers)
     
     def assert_status(self, response: APIResponse, expected: int) -> bool:
         """断言状态码"""
@@ -414,7 +419,7 @@ if __name__ == "__main__":
             tester.set_auth("basic", args.auth)
         else:
             print("错误: 认证格式不正确，使用 'Bearer token' 或 'user:pass'")
-        exit(1)
+            exit(1)
     
     # 设置请求头
     headers = {}
