@@ -44,9 +44,16 @@ from collections import Counter
 from typing import List, Tuple
 
 import string
+import re
 
 # 中文标点
-CN_PUNCT = '。！？、；：""''（）【】《》…—·'
+CN_PUNCT = "。！？、；：\"\"''（）【】《》…—·"
+
+def is_meaningless(text: str) -> bool:
+    """检查文本是否只有标点和空白"""
+    all_chars = string.punctuation + string.whitespace + CN_PUNCT
+    translator = str.maketrans('', '', all_chars)
+    return not text.translate(translator)
 
 # 中英文停用词表
 STOP_WORDS = {
@@ -80,8 +87,7 @@ def extractive_summary(text: str, num_sentences: int = 3) -> str:
         return ""
     
     # 纯标点检查
-    cleaned = re.sub(r'[\s' + string.punctuation + CN_PUNCT + r']', '', text)
-    if not cleaned:
+    if is_meaningless(text):
         return text
     
     sentences = split_sentences(text)
@@ -99,7 +105,10 @@ def extractive_summary(text: str, num_sentences: int = 3) -> str:
         sorted(sentence_scores, key=sentence_scores.get, reverse=True)[:num_sentences]
     )
     
-    return ' '.join(sentences[i] for i in top_indices)
+    # 中文句子不用空格连接
+    has_english = any(re.search(r'[a-zA-Z]', s) for s in sentences)
+    separator = ' ' if has_english else ''
+    return separator.join(sentences[i] for i in top_indices)
 
 def split_sentences(text: str) -> List[str]:
     """分割文本为句子"""
@@ -156,11 +165,16 @@ if __name__ == "__main__":
 
 ### 生成式摘要：基于 LLM API
 
-> **注意**：本代码依赖上方定义的 `split_sentences` 函数。
-
 ```python
 import os
-from typing import Optional
+import re
+from typing import Optional, List
+
+def _split_sentences_fallback(text: str) -> List[str]:
+    """最小化分句（用于降级），完整版见抽取式摘要部分"""
+    pattern = r'[。！？.!?；;]+'
+    sentences = re.split(pattern, text)
+    return [s.strip() for s in sentences if len(s.strip()) > 2]
 
 def generate_summary(
     text: str,
