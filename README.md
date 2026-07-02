@@ -61,6 +61,12 @@ skills/
 
 ## Contributing / 贡献
 
+**Welcome to contribute! We need your skills. / 欢迎贡献！我们需要你的 Skill。**
+
+Whether you have a working Skill, an idea for one, or want to improve existing ones — we'd love your help.
+
+无论你有一个可用的 Skill、一个想法，还是想改进现有的 —— 我们都欢迎你的参与。
+
 1. Fork this repository / Fork 本仓库
 2. Write a Skill following [SKILL-FORMAT.md](SKILL-FORMAT.md) / 按 SKILL-FORMAT.md 写 Skill
 3. Submit a PR / 提交 PR
@@ -68,6 +74,13 @@ skills/
 Or tell your AI: "我想贡献一个 skill" / 或告诉你的 AI："我想贡献一个 skill"
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+
+**What we need most / 我们最需要的**:
+- 🎤 Audio skills (voice, music, sound) / 音频类 Skill
+- 💻 Coding skills (review, test, deploy) / 编程类 Skill
+- 📊 Data skills (analyze, visualize, transform) / 数据类 Skill
+- 🌐 Web skills (scrape, API, automation) / 网络类 Skill
+- 🧩 Creative skills (image, video, 3D) / 创意类 Skill
 
 ---
 
