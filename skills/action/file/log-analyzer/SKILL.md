@@ -1,24 +1,19 @@
 ---
-name: log-analyzer
+name: 日志分析器
 layer: action
 category: file
 status: unverified
 description: 日志分析工具，支持多种日志格式解析、错误统计、趋势分析
-version: 1.0.0
-author: CreateYouAI
-tags: [log, analysis, parser, debugging, statistics]
-requirements: []
-platform: [windows, linux, macos]
-difficulty: beginner
+version: 1.1
 ---
 
-# Log Analyzer (日志分析器)
+# 日志分析器
 
 解析各种格式的日志文件，提取错误、警告信息，生成统计报告。
 
 ## 功能特性
 
-- 支持多种日志格式（Apache, Nginx, syslog, 自定义格式）
+- 支持多种日志格式（Apache, Nginx, syslog, JSON, 标准格式）
 - 提取 ERROR、WARNING、INFO 级别日志
 - 时间范围过滤
 - 关键词搜索
@@ -27,9 +22,7 @@ difficulty: beginner
 
 ## 安装依赖
 
-无需额外安装，使用 Python 标准库：
-- `re` 模块（正则表达式）
-- `datetime` 模块（时间处理）
+基础功能使用 Python 标准库。JSON 日志解析无需额外依赖。
 
 ## 使用方法
 
@@ -40,28 +33,25 @@ difficulty: beginner
 python log_analyzer.py analyze access.log
 
 # 只显示错误
-python log_analyzer.py analyze error.log --level ERROR
+python log_analyzer.py errors app.log
 
 # 时间范围过滤
 python log_analyzer.py analyze app.log --start "2024-01-01" --end "2024-01-31"
 
 # 搜索关键词
-python log_analyzer.py analyze app.log --keyword "timeout"
+python log_analyzer.py search app.log --keyword "timeout"
 
 # 输出统计报告
-python log_analyzer.py analyze app.log --report
+python log_analyzer.py stats app.log
 ```
 
 ### Python 代码示例
 
 ```python
-"""
-log_analyzer.py - 日志分析工具
-解析日志文件，提取错误、警告和统计信息
-"""
 import re
-from datetime import datetime, timedelta
-from typing import List, Dict, Any, Optional, Tuple
+import json
+from datetime import datetime
+from typing import List, Dict, Any, Optional
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -89,8 +79,6 @@ class LogAnalyzer:
         "standard": r'\[(?P<timestamp>\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})\]\s+(?P<level>\w+):\s+(?P<message>.+)',
         # syslog 格式
         "syslog": r'(?P<timestamp>\w+\s+\d+\s+\d{2}:\d{2}:\d{2})\s+(?P<host>\S+)\s+(?P<program>\S+?)(\[(?P<pid>\d+)\])?:\s+(?P<message>.+)',
-        # JSON 日志 (简单匹配)
-        "json": r'^\s*\{.*"level"\s*:\s*"(?P<level>\w+)".*"message"\s*:\s*"(?P<message>[^"]*)".*\}',
         # 简单格式: LEVEL message
         "simple": r'^(?P<level>ERROR|WARNING|INFO|DEBUG|CRITICAL)\s+(?P<message>.+)',
     }
@@ -111,7 +99,7 @@ class LogAnalyzer:
         初始化分析器
         
         Args:
-            format: 日志格式 ("auto", "apache", "standard", "syslog", "simple")
+            format: 日志格式 ("auto", "apache", "standard", "syslog", "simple", "json")
         """
         self.format = format
         self.entries: List[LogEntry] = []
@@ -139,7 +127,7 @@ class LogAnalyzer:
         if not path.exists():
             raise FileNotFoundError(f"日志文件不存在: {file_path}")
         
-        with open(path, 'r', encoding=encoding, errors='ignore') as f:
+        with open(path, 'r', encoding=encoding, errors='replace') as f:
             for i, line in enumerate(f, 1):
                 if max_lines and i > max_lines:
                     break
@@ -157,10 +145,19 @@ class LogAnalyzer:
     def _parse_line(self, line: str, line_number: int) -> Optional[LogEntry]:
         """解析单行日志"""
         if self.format == "auto":
+            # 优先尝试 JSON 解析（行首是 { 就尝试）
+            if line.startswith('{'):
+                entry = self._parse_json_line(line, line_number)
+                if entry:
+                    return entry
+            
+            # 然后尝试其他正则模式
             for fmt_name, pattern in self.PATTERNS.items():
                 match = re.match(pattern, line, re.IGNORECASE)
                 if match:
                     return self._create_entry(match, fmt_name, line, line_number)
+        elif self.format == "json":
+            return self._parse_json_line(line, line_number)
         else:
             pattern = self.PATTERNS.get(self.format)
             if pattern:
@@ -175,6 +172,31 @@ class LogAnalyzer:
             message=line,
             line_number=line_number
         )
+    
+    def _parse_json_line(self, line: str, line_number: int) -> Optional[LogEntry]:
+        """使用 json.loads 解析 JSON 日志"""
+        try:
+            data = json.loads(line.strip())
+            if not isinstance(data, dict):
+                return None
+            
+            level = data.get("level", data.get("severity", "INFO"))
+            message = data.get("message", data.get("msg", str(data)))
+            
+            # 尝试从常见字段提取时间戳
+            ts = data.get("timestamp") or data.get("time") or data.get("ts") or data.get("@timestamp")
+            timestamp = self._parse_timestamp(str(ts)) if ts else None
+            
+            return LogEntry(
+                timestamp=timestamp,
+                level=str(level).upper(),
+                message=str(message),
+                line_number=line_number,
+                extra={k: v for k, v in data.items() 
+                       if k not in ("level", "severity", "message", "msg", "timestamp", "time", "ts", "@timestamp")}
+            )
+        except (json.JSONDecodeError, ValueError):
+            return None
     
     def _create_entry(
         self,
@@ -211,15 +233,22 @@ class LogAnalyzer:
     def _parse_timestamp(self, ts_str: str) -> Optional[datetime]:
         """解析时间戳"""
         formats = [
-            "%Y-%m-%d %H:%M:%S",
-            "%d/%b/%Y:%H:%M:%S %z",
-            "%b %d %H:%M:%S",
-            "%Y-%m-%dT%H:%M:%S",
+            "%Y-%m-%d %H:%M:%S.%f",      # 带毫秒
+            "%Y-%m-%d %H:%M:%S%z",        # 带时区
+            "%Y-%m-%dT%H:%M:%S.%f%z",     # ISO 8601 带毫秒和时区
+            "%Y-%m-%dT%H:%M:%S%z",        # ISO 8601 带时区
+            "%Y-%m-%dT%H:%M:%S.%f",       # ISO 8601 带毫秒
+            "%Y-%m-%dT%H:%M:%S",          # ISO 8601
+            "%Y-%m-%d %H:%M:%S",          # 标准格式
+            "%d/%b/%Y:%H:%M:%S %z",       # Apache 格式
+            "%b %d %H:%M:%S",             # syslog 格式
         ]
+        
+        ts_str = ts_str.strip()
         
         for fmt in formats:
             try:
-                return datetime.strptime(ts_str.strip(), fmt)
+                return datetime.strptime(ts_str, fmt)
             except ValueError:
                 continue
         
@@ -229,15 +258,7 @@ class LogAnalyzer:
         self,
         min_level: str = "WARNING"
     ) -> List[LogEntry]:
-        """
-        按级别过滤
-        
-        Args:
-            min_level: 最低级别
-            
-        Returns:
-            过滤后的日志条目
-        """
+        """按级别过滤"""
         min_priority = self.LEVEL_PRIORITY.get(min_level.upper(), 0)
         
         return [
@@ -250,16 +271,7 @@ class LogAnalyzer:
         start: Optional[datetime] = None,
         end: Optional[datetime] = None
     ) -> List[LogEntry]:
-        """
-        按时间范围过滤
-        
-        Args:
-            start: 开始时间
-            end: 结束时间
-            
-        Returns:
-            过滤后的日志条目
-        """
+        """按时间范围过滤"""
         result = []
         
         for entry in self.entries:
@@ -281,16 +293,7 @@ class LogAnalyzer:
         keyword: str,
         case_sensitive: bool = False
     ) -> List[LogEntry]:
-        """
-        搜索关键词
-        
-        Args:
-            keyword: 搜索关键词
-            case_sensitive: 是否大小写敏感
-            
-        Returns:
-            匹配的日志条目
-        """
+        """搜索关键词"""
         flags = 0 if case_sensitive else re.IGNORECASE
         pattern = re.compile(re.escape(keyword), flags)
         
@@ -300,12 +303,7 @@ class LogAnalyzer:
         ]
     
     def get_statistics(self) -> Dict[str, Any]:
-        """
-        获取统计信息
-        
-        Returns:
-            统计字典
-        """
+        """获取统计信息"""
         if not self.entries:
             return {"total": 0}
         
@@ -343,15 +341,7 @@ class LogAnalyzer:
         self,
         output_file: Optional[str] = None
     ) -> str:
-        """
-        生成分析报告
-        
-        Args:
-            output_file: 输出文件路径（可选）
-            
-        Returns:
-            报告内容
-        """
+        """生成分析报告"""
         stats = self.get_statistics()
         
         report_lines = [
@@ -390,28 +380,43 @@ class LogAnalyzer:
         return report
 
 
-# 使用示例
+# 命令行入口
 if __name__ == "__main__":
     import argparse
     
     parser = argparse.ArgumentParser(description="日志分析工具")
     parser.add_argument("action", choices=["analyze", "errors", "search", "stats"])
     parser.add_argument("logfile", help="日志文件路径")
-    parser.add_argument("--level", default="WARNING", help="最低日志级别")
-    parser.add_argument("--keyword", help="搜索关键词")
+    parser.add_argument("--level", default="WARNING", help="最低日志级别（仅 analyze）")
+    parser.add_argument("--keyword", help="搜索关键词（仅 search）")
     parser.add_argument("--start", help="开始时间 (YYYY-MM-DD)")
     parser.add_argument("--end", help="结束时间 (YYYY-MM-DD)")
-    parser.add_argument("--format", default="auto")
-    parser.add_argument("--report", action="store_true")
+    parser.add_argument("--format", default="auto", help="日志格式")
+    parser.add_argument("--report", action="store_true", help="输出详细报告")
     
     args = parser.parse_args()
     
     analyzer = LogAnalyzer(format=args.format)
     analyzer.parse_log(args.logfile)
     
-    if args.action == "analyze" or args.action == "errors":
+    # 解析时间参数
+    start_dt = datetime.strptime(args.start, "%Y-%m-%d") if args.start else None
+    end_dt = datetime.strptime(args.end, "%Y-%m-%d") if args.end else None
+    
+    # 按时间过滤
+    if start_dt or end_dt:
+        analyzer.entries = analyzer.filter_by_time(start_dt, end_dt)
+    
+    if args.action == "analyze":
         entries = analyzer.filter_by_level(args.level)
         print(f"找到 {len(entries)} 条 {args.level} 及以上级别的日志:")
+        for entry in entries[:20]:
+            print(f"  [{entry.level}] {entry.message[:80]}")
+    
+    elif args.action == "errors":
+        # errors 固定过滤 ERROR 级别
+        entries = analyzer.filter_by_level("ERROR")
+        print(f"找到 {len(entries)} 条 ERROR 级别的日志:")
         for entry in entries[:20]:
             print(f"  [{entry.level}] {entry.message[:80]}")
     
@@ -435,6 +440,7 @@ if __name__ == "__main__":
 
 ```python
 from log_analyzer import LogAnalyzer
+from datetime import datetime
 
 analyzer = LogAnalyzer(format="auto")
 
@@ -447,7 +453,6 @@ errors = analyzer.filter_by_level("ERROR")
 print(f"错误数量: {len(errors)}")
 
 # 按时间过滤
-from datetime import datetime
 recent = analyzer.filter_by_time(
     start=datetime(2024, 1, 1),
     end=datetime(2024, 1, 31)
@@ -458,40 +463,20 @@ timeout_logs = analyzer.search_keyword("timeout")
 
 # 生成报告
 report = analyzer.generate_report("report.txt")
-print(report)
 ```
 
-## 故障排除
+## 问题排查
 
-### 问题：编码错误
-```
-错误: UnicodeDecodeError
-```
-**解决**: 指定正确的编码
-```python
-analyzer.parse_log("app.log", encoding="gbk")
-```
+| 问题 | 原因 | 解决 |
+|------|------|------|
+| 编码错误 | 文件非 UTF-8 | 指定编码：`parse_log("app.log", encoding="gbk")` |
+| 内存不足 | 大文件全量加载 | 使用 `max_lines` 限制行数 |
+| JSON 日志解析失败 | 非标准 JSON | 确保每行是合法 JSON 对象 |
+| 时间过滤无效 | 日期格式错误 | 使用 `YYYY-MM-DD` 格式 |
+| 日志格式无法识别 | 未知格式 | 使用 `format="simple"` 或 `format="json"` |
 
-### 问题：内存不足（大文件）
-```
-错误: MemoryError
-```
-**解决**: 限制读取行数
-```python
-analyzer.parse_log("huge.log", max_lines=100000)
-```
+## 依赖
 
-### 问题：日志格式无法识别
-```
-警告: 无法解析的日志行
-```
-**解决**: 使用自定义格式或添加新模式
-```python
-# 使用简单格式
-analyzer = LogAnalyzer(format="simple")
-```
-
-## 参考链接
-
-- [Python re 模块文档](https://docs.python.org/3/library/re.html)
-- [常见日志格式](https://en.wikipedia.org/wiki/Common_Log_Format)
+| 依赖 | 版本 | 用途 |
+|------|------|------|
+| Python | 3.8+ | 运行环境 |
