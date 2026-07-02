@@ -28,18 +28,18 @@ description: >
 
 ```
 IF 用户用 TypeScript/Node.js:
-    → 方案一（TypeScript 版）— Zod schema + React/Ink UI
+    → 方案一（TypeScript 版）— 生产验证，推荐
 ELSE IF 用户用 Python:
-    → 方案二（Python 版）— Pydantic schema + Rich UI
+    → 方案二（Python 版）— 社区贡献，待验证
 ELSE IF 用户用其他语言:
-    → 方案三（通用架构模式）— 接口定义 + 适配器模式
+    → 方案三（通用架构模式）— 社区贡献，待验证
 ```
 
-| 你的技术栈 | 推荐方案 |
-|-----------|----------|
-| TypeScript/Node.js | 方案一 |
-| Python | 方案二 |
-| Go/Rust/Java/其他 | 方案三 |
+| 你的技术栈 | 推荐方案 | 状态 |
+|-----------|----------|------|
+| TypeScript/Node.js | 方案一 | ✅ 生产验证 |
+| Python | 方案二 | ⚠️ 社区贡献，待验证 |
+| Go/Rust/Java/其他 | 方案三 | ⚠️ 社区贡献，待验证 |
 
 ---
 
@@ -75,7 +75,7 @@ ELSE IF 用户用其他语言:
 | Node.js | 18+ | 运行时 |
 | React | 18+ | UI 渲染（可选） |
 
-### Python 版
+### Python 版 ⚠️ 社区贡献，待验证
 
 | 依赖 | 版本 | 用途 |
 |------|------|------|
@@ -83,7 +83,7 @@ ELSE IF 用户用其他语言:
 | Pydantic | v2+ | Schema 验证 |
 | Rich | 13+ | 终端 UI（可选） |
 
-### 通用版
+### 通用版 ⚠️ 社区贡献，待验证
 
 无特殊依赖，只需支持接口/协议定义的语言。
 
@@ -121,7 +121,7 @@ class ToolRegistry {
 }
 ```
 
-**Python 版：**
+**Python 版 ⚠️ 社区贡献，待验证：**
 ```python
 # tools/registry.py
 from typing import Dict, List, Optional
@@ -164,7 +164,7 @@ interface Tool<Input = any, Output = any> {
 }
 ```
 
-**Python 版：**
+**Python 版 ⚠️ 社区贡献，待验证：**
 ```python
 # tools/types.py
 from typing import Any, Generic, TypeVar, Optional, Callable
@@ -211,7 +211,7 @@ interface PermissionRule<Input> {
 }
 ```
 
-**Python 版：**
+**Python 版 ⚠️ 社区贡献，待验证：**
 ```python
 # tools/permissions.py
 from typing import Callable, List, Literal, Union
@@ -258,7 +258,7 @@ async function executeTool(
 }
 ```
 
-**Python 版：**
+**Python 版 ⚠️ 社区贡献，待验证：**
 ```python
 # tools/executor.py
 async def execute_tool(
