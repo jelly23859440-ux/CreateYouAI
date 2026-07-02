@@ -35,6 +35,10 @@ Have an idea for an AI skill but can't build it yourself? Submit an idea and let
 |-------|-------|----------|-------------|
 | [ai-builder](skills/meta/ai-builder/) | 🧩 meta | 智能组合 | Scan skills and help users build their AI / 扫描仓库，帮用户挑选组合 Skill |
 | [tool-system-builder](skills/meta/ai-builder/) | 🧩 meta | 智能组合 | Design and build modular tool systems / 设计构建模块化工具系统 |
+| [multi-agent-coordinator](skills/meta/ai-builder/) | 🧩 meta | 智能组合 | Design and build multi-agent coordination systems / 设计构建多Agent协调系统 |
+| [memory-system-design](skills/meta/ai-builder/) | 🧩 meta | 智能组合 | Design and build layered memory systems / 设计构建分层记忆系统 |
+| [query-engine-design](skills/meta/ai-builder/) | 🧩 meta | 智能组合 | Design and build LLM query engines / 设计构建LLM查询引擎 |
+| [skill-system-design](skills/meta/ai-builder/) | 🧩 meta | 智能组合 | Design and build skill loading and execution systems / 设计构建Skill加载执行系统 |
 | [contribute](skills/meta/contribute/) | 🧩 meta | 社区贡献 | Submit new skills to the repository / 向仓库提交新 Skill |
 | [voice-recognition](skills/action/device/voice-recognition/) | ⚡ action | 设备交互 | Local speech recognition / 本地语音识别 |
 
