@@ -34,8 +34,8 @@ Have an idea for an AI skill but can't build it yourself? Submit an idea and let
 | Skill | Layer | Category | Description |
 |-------|-------|----------|-------------|
 | [ai-builder](skills/meta/ai-builder/) | 🧩 meta | 智能组合 | Scan skills and help users build their AI / 扫描仓库，帮用户挑选组合 Skill |
+| [tool-system-builder](skills/meta/ai-builder/) | 🧩 meta | 智能组合 | Design and build modular tool systems / 设计构建模块化工具系统 |
 | [contribute](skills/meta/contribute/) | 🧩 meta | 社区贡献 | Submit new skills to the repository / 向仓库提交新 Skill |
-| [tool-system-design](skills/action/tool/) | ⚡ action | 工具调用 | Modular tool system design / 模块化工具系统设计 |
 | [voice-recognition](skills/action/device/voice-recognition/) | ⚡ action | 设备交互 | Local speech recognition / 本地语音识别 |
 
 ---
