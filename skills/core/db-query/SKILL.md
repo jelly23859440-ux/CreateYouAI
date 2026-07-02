@@ -41,11 +41,6 @@ SQLite 是 Python 内置模块，直接使用。
 pip install psycopg2-binary>=2.9.0
 ```
 
-验证安装：
-```bash
-python -c "import psycopg2; print('psycopg2 版本:', psycopg2.__version__)"
-```
-
 ## 使用方法
 
 ### SQLite 基础操作
@@ -53,10 +48,11 @@ python -c "import psycopg2; print('psycopg2 版本:', psycopg2.__version__)"
 ```python
 import sqlite3
 from contextlib import contextmanager
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
+
 
 class DatabaseManager:
-    """数据库管理器"""
+    """数据库管理器（SQLite）"""
     
     def __init__(self, db_path: str):
         self.db_path = db_path
@@ -64,6 +60,9 @@ class DatabaseManager:
     
     def connect(self):
         """建立连接"""
+        # 关闭旧连接
+        if self.conn:
+            self.conn.close()
         self.conn = sqlite3.connect(self.db_path)
         self.conn.row_factory = sqlite3.Row
         return self
@@ -82,7 +81,9 @@ class DatabaseManager:
         cur = self.conn.cursor()
         try:
             yield cur
-            self.conn.commit()
+            # 仅对写操作 commit，SELECT 不需要
+            if cur.description is None:
+                self.conn.commit()
         except Exception:
             self.conn.rollback()
             raise
@@ -118,8 +119,72 @@ class DatabaseManager:
     
     def get_row_count(self, table: str) -> int:
         """获取表行数"""
-        result = self.execute(f"SELECT COUNT(*) as count FROM {table}")
+        # 转义表名防止 SQL 注入
+        safe_table = table.replace('"', '""')
+        result = self.execute(f'SELECT COUNT(*) as count FROM "{safe_table}"')
         return result[0]['count'] if result else 0
+
+
+class PostgreSQLManager:
+    """PostgreSQL 数据库管理器"""
+    
+    def __init__(self, host: str, port: int, database: str, user: str, password: str):
+        try:
+            import psycopg2
+            import psycopg2.extras
+        except ImportError:
+            raise ImportError("请安装 psycopg2: pip install psycopg2-binary")
+        
+        self.conn = psycopg2.connect(
+            host=host,
+            port=port,
+            database=database,
+            user=user,
+            password=password
+        )
+        self.conn.cursor_factory = psycopg2.extras.RealDictCursor
+    
+    def connect(self):
+        return self
+    
+    def disconnect(self):
+        if self.conn:
+            self.conn.close()
+            self.conn = None
+    
+    def execute(self, query: str, params: tuple = ()) -> List[Dict]:
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute(query, params)
+                if cur.description:
+                    return [dict(row) for row in cur.fetchall()]
+                self.conn.commit()
+                return []
+        except Exception:
+            self.conn.rollback()
+            raise
+    
+    def get_tables(self) -> List[str]:
+        """获取所有表名（PostgreSQL 专用）"""
+        result = self.execute(
+            "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name"
+        )
+        return [row['table_name'] for row in result]
+    
+    def get_table_info(self, table: str) -> List[Dict]:
+        """获取表结构（PostgreSQL 专用）"""
+        return self.execute(
+            "SELECT column_name, data_type, is_nullable, column_default "
+            "FROM information_schema.columns WHERE table_name = %s",
+            (table,)
+        )
+    
+    def get_row_count(self, table: str) -> int:
+        """获取表行数（PostgreSQL 专用）"""
+        safe_table = table.replace('"', '""')
+        result = self.execute(f'SELECT COUNT(*) as count FROM "{safe_table}"')
+        return result[0]['count'] if result else 0
+
 
 # 使用示例
 if __name__ == "__main__":
@@ -163,17 +228,20 @@ if __name__ == "__main__":
 import re
 from datetime import datetime
 
+
 class SafeQueryExecutor:
     """安全查询执行器"""
     
-    DANGEROUS_KEYWORDS = [
-        'DROP', 'DELETE', 'TRUNCATE', 'ALTER', 'CREATE',
-        'GRANT', 'REVOKE', 'EXEC', 'EXECUTE'
-    ]
+    # 仅匹配独立关键字（不在字符串中的）
+    DANGEROUS_PATTERN = re.compile(
+        r'\b(DROP|DELETE|TRUNCATE|ALTER|CREATE|GRANT|REVOKE|EXEC|EXECUTE)\b',
+        re.IGNORECASE
+    )
     
-    def __init__(self, db_manager: DatabaseManager):
+    def __init__(self, db_manager):
         self.db = db_manager
         self.history = []
+        self.max_history = 100
     
     def is_select_query(self, query: str) -> bool:
         """检查是否为 SELECT 查询"""
@@ -182,10 +250,11 @@ class SafeQueryExecutor:
     
     def is_dangerous(self, query: str) -> bool:
         """检查是否为危险操作"""
-        normalized = query.upper()
-        return any(kw in normalized for kw in self.DANGEROUS_KEYWORDS)
+        # 排除字符串内容，只检查关键字
+        cleaned = re.sub(r"'[^']*'|\"[^\"]*\"", '', query)
+        return bool(self.DANGEROUS_PATTERN.search(cleaned))
     
-    def validate_query(self, query: str) -> tuple[bool, str]:
+    def validate_query(self, query: str) -> Tuple[bool, str]:
         """验证查询安全性"""
         if self.is_dangerous(query):
             return False, "包含危险关键字，拒绝执行"
@@ -193,7 +262,9 @@ class SafeQueryExecutor:
         if not self.is_select_query(query):
             return False, "仅支持 SELECT 查询"
         
-        if ';' in query.rstrip().rstrip(';'):
+        # 检查多语句（排除字符串内的分号）
+        cleaned = re.sub(r"'[^']*'|\"[^\"]*\"", '', query)
+        if ';' in cleaned:
             return False, "不支持多语句执行"
         
         return True, "验证通过"
@@ -205,17 +276,10 @@ class SafeQueryExecutor:
         max_rows: int = 1000
     ) -> Dict[str, Any]:
         """
-        安全执行查询。
+        安全执行查询
         
         Returns:
-            {
-                "success": bool,
-                "data": List[Dict],
-                "row_count": int,
-                "message": str,
-                "query": str,
-                "timestamp": str
-            }
+            {"success": bool, "data": List, "row_count": int, "message": str}
         """
         valid, msg = self.validate_query(query)
         if not valid:
@@ -229,9 +293,17 @@ class SafeQueryExecutor:
             }
         
         try:
-            limited_query = f"{query.rstrip().rstrip(';')} LIMIT {max_rows}"
+            # 仅在查询无 LIMIT 时追加
+            if "LIMIT" not in query.upper():
+                limited_query = f"{query.rstrip().rstrip(';')} LIMIT {max_rows}"
+            else:
+                limited_query = query
+            
             data = self.db.execute(limited_query, params)
             
+            # 记录历史（限制大小）
+            if len(self.history) >= self.max_history:
+                self.history.pop(0)
             self.history.append({
                 "query": query,
                 "params": params,
@@ -256,6 +328,11 @@ class SafeQueryExecutor:
                 "query": query,
                 "timestamp": datetime.now().isoformat()
             }
+    
+    def get_history(self, limit: int = 10) -> List[Dict]:
+        """获取查询历史"""
+        return self.history[-limit:]
+
 
 # 使用示例
 if __name__ == "__main__":
@@ -263,16 +340,10 @@ if __name__ == "__main__":
     executor = SafeQueryExecutor(db)
     
     result = executor.execute_safe("SELECT * FROM users WHERE name = ?", ("张三",))
-    
     if result["success"]:
         print(f"查询成功: {result['message']}")
-        for row in result["data"]:
-            print(f"  {row}")
     else:
         print(f"查询失败: {result['message']}")
-    
-    dangerous = executor.execute_safe("DROP TABLE users")
-    print(f"\n危险查询: {dangerous['message']}")
 ```
 
 ### 结果格式化
@@ -281,6 +352,8 @@ if __name__ == "__main__":
 import csv
 import json
 from io import StringIO
+from typing import List, Dict
+
 
 class ResultFormatter:
     """查询结果格式化器"""
@@ -292,7 +365,6 @@ class ResultFormatter:
             return "(无数据)"
         
         columns = list(data[0].keys())
-        
         col_widths = {}
         for col in columns:
             max_width = max(len(str(col)), max(len(str(row.get(col, ''))) for row in data))
@@ -330,7 +402,7 @@ class ResultFormatter:
     
     @staticmethod
     def to_markdown(data: List[Dict]) -> str:
-        """格式化为 Markdown 表格"""
+        """格式化为 Markdown 表格（转义管道符）"""
         if not data:
             return "(无数据)"
         
@@ -341,10 +413,14 @@ class ResultFormatter:
         
         rows = []
         for row in data:
-            row_str = "| " + " | ".join(str(row.get(col, '')) for col in columns) + " |"
+            # 转义管道符，防止破坏表格
+            row_str = "| " + " | ".join(
+                str(row.get(col, '')).replace("|", "\\|") for col in columns
+            ) + " |"
             rows.append(row_str)
         
         return "\n".join([header, separator] + rows)
+
 
 # 使用示例
 if __name__ == "__main__":
@@ -354,73 +430,11 @@ if __name__ == "__main__":
     ]
     
     formatter = ResultFormatter()
-    
-    print("=== ASCII 表格 ===")
     print(formatter.to_table(data))
-    
-    print("\n=== Markdown 表格 ===")
     print(formatter.to_markdown(data))
-    
-    print("\n=== JSON ===")
-    print(formatter.to_json(data))
 ```
 
-### PostgreSQL 支持
-
-```python
-import os
-
-class PostgreSQLManager(DatabaseManager):
-    """PostgreSQL 数据库管理器"""
-    
-    def __init__(self, host: str, port: int, database: str, user: str, password: str):
-        try:
-            import psycopg2
-            import psycopg2.extras
-        except ImportError:
-            raise ImportError("请安装 psycopg2: pip install psycopg2-binary")
-        
-        self.conn = psycopg2.connect(
-            host=host,
-            port=port,
-            database=database,
-            user=user,
-            password=password
-        )
-        self.conn.cursor_factory = psycopg2.extras.RealDictCursor
-    
-    def connect(self):
-        return self
-    
-    def disconnect(self):
-        if self.conn:
-            self.conn.close()
-    
-    def execute(self, query: str, params: tuple = ()) -> List[Dict]:
-        with self.conn.cursor() as cur:
-            cur.execute(query, params)
-            if cur.description:
-                return [dict(row) for row in cur.fetchall()]
-            self.conn.commit()
-            return []
-
-# 使用示例
-if __name__ == "__main__":
-    db = PostgreSQLManager(
-        host=os.environ.get("PG_HOST", "localhost"),
-        port=int(os.environ.get("PG_PORT", 5432)),
-        database=os.environ.get("PG_DB", "mydb"),
-        user=os.environ.get("PG_USER", "postgres"),
-        password=os.environ.get("PG_PASS", "")
-    )
-    
-    tables = db.execute(
-        "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'"
-    )
-    print("PostgreSQL 表:", [t['table_name'] for t in tables])
-```
-
-### 命令行用法
+## 命令行用法
 
 ```bash
 # 查询 SQLite 数据库
@@ -436,45 +450,88 @@ python db_query.py --db mydb.sqlite --format csv "SELECT * FROM users" > users.c
 python db_query.py --db postgresql://user:pass@host:5432/mydb "SELECT COUNT(*) FROM orders"
 ```
 
+### 命令行入口代码
+
+```python
+import argparse
+import os
+
+def main():
+    parser = argparse.ArgumentParser(description="数据库查询工具")
+    parser.add_argument("query", nargs="?", help="SQL 查询语句")
+    parser.add_argument("--db", required=True, help="数据库路径或连接字符串")
+    parser.add_argument("--tables", action="store_true", help="列出所有表")
+    parser.add_argument("--format", choices=["table", "json", "csv", "markdown"], default="table")
+    parser.add_argument("--max-rows", type=int, default=1000)
+    
+    args = parser.parse_args()
+    
+    # 创建数据库连接
+    if args.db.startswith("postgresql://") or args.db.startswith("postgres://"):
+        from urllib.parse import urlparse
+        parsed = urlparse(args.db)
+        db = PostgreSQLManager(
+            host=parsed.hostname,
+            port=parsed.port or 5432,
+            database=parsed.path.lstrip("/"),
+            user=parsed.username,
+            password=parsed.password or ""
+        )
+    else:
+        db = DatabaseManager(args.db)
+    
+    try:
+        if args.tables:
+            tables = db.get_tables()
+            print(f"共 {len(tables)} 个表:")
+            for t in tables:
+                print(f"  - {t}")
+        elif args.query:
+            executor = SafeQueryExecutor(db)
+            result = executor.execute_safe(args.query, max_rows=args.max_rows)
+            
+            if result["success"]:
+                formatter = ResultFormatter()
+                if args.format == "json":
+                    print(formatter.to_json(result["data"]))
+                elif args.format == "csv":
+                    print(formatter.to_csv_string(result["data"]))
+                elif args.format == "markdown":
+                    print(formatter.to_markdown(result["data"]))
+                else:
+                    print(formatter.to_table(result["data"]))
+            else:
+                print(f"错误: {result['message']}")
+        else:
+            parser.print_help()
+    finally:
+        db.disconnect()
+
+if __name__ == "__main__":
+    main()
+```
+
 ## 问题排查
 
-### 问题 1：SQLite 数据库锁定
-
-**原因**：多进程同时写入。
-
-**解决**：使用 WAL 模式或添加超时：
-```python
-sqlite3.connect("db.sqlite", timeout=10)
-```
-
-### 问题 2：PostgreSQL 连接失败
-
-**原因**：网络、认证或配置错误。
-
-**解决**：
-```bash
-# 检查连接参数
-psql -h host -p 5432 -U user -d dbname
-```
-
-### 问题 3：查询结果为空
-
-**原因**：表不存在或查询条件不匹配。
-
-**解决**：先执行 `--tables` 查看表，再用 `SELECT COUNT(*)` 验证数据。
+| 问题 | 原因 | 解决 |
+|------|------|------|
+| SQLite 数据库锁定 | 多进程同时写入 | 使用 WAL 模式：`sqlite3.connect("db.sqlite", timeout=10)` |
+| PostgreSQL 连接失败 | 网络/认证错误 | 检查连接参数 |
+| 查询结果为空 | 表不存在或条件不匹配 | 先执行 `--tables` 查看表 |
+| LIMIT 重复报错 | 查询已包含 LIMIT | 代码自动检测，不重复追加 |
+| tuple 语法错误 | Python 版本太低 | 需 Python 3.9+ 或使用 `Tuple` |
 
 ## 依赖
 
-| 依赖 | 版本 | 类型 |
+| 依赖 | 版本 | 用途 |
 |------|------|------|
-| Python | 3.8+ | 必需 |
-| sqlite3 | 内置 | SQLite 必需 |
-| psycopg2-binary | ≥2.9.0 | PostgreSQL 可选 |
+| Python | 3.9+ | 运行环境 |
+| sqlite3 | 内置 | SQLite |
+| psycopg2-binary | ≥2.9.0 | PostgreSQL（可选） |
 
 ## Agent 执行规范
 
-### 核心约束
 - **仅执行 SELECT**：禁止执行修改数据的语句
 - **参数化查询**：始终使用参数占位符，禁止字符串拼接
 - **限制结果集**：默认限制 1000 行，防止内存溢出
-- **记录查询历史**：便于审计和复用
+- **记录查询历史**：便于审计和复用，最多保留 100 条
