@@ -140,68 +140,70 @@ class CodeSearcher:
         except Exception as e:
             raise RuntimeError(f"搜索失败: {e}")
         
-        return self._parse_json_output(result.stdout)
+        return self._parse_json_output(result.stdout, context_lines)
     
-    def _parse_json_output(self, output: str) -> List[SearchResult]:
+    def _parse_json_output(self, output: str, context_lines: int = 0) -> List[SearchResult]:
         """
         解析 ripgrep --json 输出
         
-        JSON 输出格式：
-        {"type":"begin","data":{"path":{"text":"file.py"}}}
-        {"type":"match","data":{"path":{"text":"file.py"},"lines":{"text":"..."},"line_number":10,"submatches":[...]}}
-        {"type":"context","data":{"path":{"text":"file.py"},"lines":{"text":"..."},"line_number":9}}
-        {"type":"end","data":{"path":{"text":"file.py"},"stats":{"elapsed":...}}}
+        使用"先收集再关联"策略：
+        1. 收集所有 JSON 事件
+        2. 找到所有 match 的索引
+        3. 对每个 match，向前/向后找 context 行
         """
-        results = []
-        current_file = ""
-        context_before = []
-        
+        # 1. 收集所有行
+        all_entries = []
         for line in output.strip().split('\n'):
             if not line:
                 continue
-            
             try:
                 data = json.loads(line)
+                all_entries.append(data)
             except json.JSONDecodeError:
                 continue
+        
+        # 2. 找到所有 match 的索引
+        match_indices = []
+        for i, entry in enumerate(all_entries):
+            if entry.get("type") == "match":
+                match_indices.append(i)
+        
+        # 3. 对每个 match，向前/向后找 context
+        results = []
+        for idx in match_indices:
+            match_data = all_entries[idx]
+            msg_data = match_data.get("data", {})
             
-            msg_type = data.get("type")
-            msg_data = data.get("data", {})
+            file_path = msg_data.get("path", {}).get("text", "")
+            line_num = msg_data.get("line_number", 0)
+            content = msg_data.get("lines", {}).get("text", "").strip()
+            submatches = msg_data.get("submatches", [])
+            column = submatches[0].get("start", 0) if submatches else 0
             
-            if msg_type == "begin":
-                current_file = msg_data.get("path", {}).get("text", "")
-                context_before = []
-                
-            elif msg_type == "match":
-                file_path = msg_data.get("path", {}).get("text", current_file)
-                line_num = msg_data.get("line_number", 0)
-                content = msg_data.get("lines", {}).get("text", "").strip()
-                
-                # 获取列号
-                submatches = msg_data.get("submatches", [])
-                column = submatches[0].get("start", 0) if submatches else 0
-                
-                results.append(SearchResult(
-                    file=file_path,
-                    line=line_num,
-                    column=column,
-                    match=content,
-                    context_before=context_before.copy(),
-                    context_after=[]
-                ))
-                
-                context_before = []
-                
-            elif msg_type == "context":
-                file_path = msg_data.get("path", {}).get("text", current_file)
-                line_num = msg_data.get("line_number", 0)
-                content = msg_data.get("lines", {}).get("text", "").strip()
-                
-                # 收集上下文行
-                context_before.append(content)
-                # 保持上下文行数不超过限制
-                if len(context_before) > 20:  # 假设最大上下文
-                    context_before.pop(0)
+            # 向前找 context_lines 个 context
+            before = []
+            for i in range(max(0, idx - context_lines), idx):
+                if all_entries[i].get("type") == "context":
+                    ctx_data = all_entries[i].get("data", {})
+                    ctx_content = ctx_data.get("lines", {}).get("text", "").strip()
+                    before.append(ctx_content)
+            
+            # 向后找 context_lines 个 context
+            after = []
+            for i in range(idx + 1, min(len(all_entries), idx + 1 + context_lines)):
+                if all_entries[i].get("type") == "context":
+                    ctx_data = all_entries[i].get("data", {})
+                    ctx_content = ctx_data.get("lines", {}).get("text", "").strip()
+                    after.append(ctx_content)
+            
+            results.append(SearchResult(
+                file=file_path,
+                line=line_num,
+                column=column,
+                match=content,
+                context_before=before,
+                context_after=after
+            ))
         
         return results
     
