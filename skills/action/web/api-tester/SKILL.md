@@ -1,18 +1,17 @@
 ---
-name: api-tester
+name: API 测试工具
 layer: action
 category: web
 status: unverified
 description: API 测试工具，支持请求构建、响应验证、自动化测试
-version: 1.0.0
-author: CreateYouAI
-tags: [api, rest, http, testing, requests]
-requirements: [requests]
-platform: [windows, linux, macos]
-difficulty: beginner
+version: 1.1
+requirements:
+  - name: requests
+    version: ">=2.28"
+    required: true
 ---
 
-# API Tester (API 测试工具)
+# API 测试工具
 
 REST API 测试工具，支持各种 HTTP 方法、认证、请求头配置和响应验证。
 
@@ -24,9 +23,8 @@ REST API 测试工具，支持各种 HTTP 方法、认证、请求头配置和�
 - 表单数据
 - 文件上传
 - Basic/Bearer Token 认证
-- 响应验证（状态码、JSON Schema）
+- 响应验证（状态码、JSON 字段）
 - 请求历史记录
-- 环境变量支持
 
 ## 安装依赖
 
@@ -36,38 +34,16 @@ pip install requests
 
 ## 使用方法
 
-### 命令行使用
-
-```bash
-# GET 请求
-python api_tester.py get https://api.example.com/users
-
-# POST 请求（JSON）
-python api_tester.py post https://api.example.com/users --data '{"name": "John"}'
-
-# 带认证的请求
-python api_tester.py get https://api.example.com/me --auth "Bearer token123"
-
-# 自定义请求头
-python api_tester.py get https://api.example.com/data --header "X-Custom: value"
-
-# 保存响应
-python api_tester.py get https://api.example.com/data --output response.json
-```
-
 ### Python 代码示例
 
 ```python
-"""
-api_tester.py - REST API 测试工具
-支持各种 HTTP 方法、认证和响应验证
-"""
 import requests
 import json
 from typing import Dict, Any, Optional, List, Union
 from dataclasses import dataclass, field
 from datetime import datetime
 from urllib.parse import urljoin
+from requests.auth import HTTPBasicAuth
 
 
 @dataclass
@@ -87,7 +63,7 @@ class APIResponse:
         return 200 <= self.status_code < 300
     
     @property
-    def json(self) -> Optional[Dict]:
+    def parsed_json(self) -> Optional[Dict]:
         """尝试解析 JSON 响应"""
         try:
             return self.body if isinstance(self.body, dict) else json.loads(self.body)
@@ -117,14 +93,6 @@ class APITester:
         timeout: int = 30,
         verify_ssl: bool = True
     ):
-        """
-        初始化测试器
-        
-        Args:
-            base_url: 基础 URL
-            timeout: 请求超时时间（秒）
-            verify_ssl: 是否验证 SSL 证书
-        """
         self.base_url = base_url.rstrip('/')
         self.timeout = timeout
         self.verify_ssl = verify_ssl
@@ -142,17 +110,15 @@ class APITester:
         if auth_type.lower() == "bearer":
             self.session.headers["Authorization"] = f"Bearer {credential}"
         elif auth_type.lower() == "basic":
-            import base64
-            encoded = base64.b64encode(credential.encode()).decode()
-            self.session.headers["Authorization"] = f"Basic {encoded}"
+            # 使用 requests 内置的 BasicAuth
+            if ":" in credential:
+                username, password = credential.split(":", 1)
+            else:
+                username, password = credential, ""
+            self.session.auth = HTTPBasicAuth(username, password)
     
     def set_headers(self, headers: Dict[str, str]) -> None:
-        """
-        设置默认请求头
-        
-        Args:
-            headers: 请求头字典
-        """
+        """设置默认请求头"""
         self.session.headers.update(headers)
     
     def request(
@@ -165,27 +131,8 @@ class APITester:
         params: Optional[Dict[str, str]] = None,
         files: Optional[Dict] = None
     ) -> APIResponse:
-        """
-        发送 HTTP 请求
-        
-        Args:
-            method: HTTP 方法
-            endpoint: API 端点（相对于 base_url）
-            data: 表单数据或原始数据
-            json_data: JSON 数据
-            headers: 额外的请求头
-            params: URL 查询参数
-            files: 上传的文件
-            
-        Returns:
-            APIResponse 对象
-        """
+        """发送 HTTP 请求"""
         url = urljoin(self.base_url + '/', endpoint.lstrip('/'))
-        
-        # 合并请求头
-        request_headers = dict(self.session.headers)
-        if headers:
-            request_headers.update(headers)
         
         start_time = datetime.now()
         
@@ -253,30 +200,33 @@ class APITester:
         endpoint: str,
         data: Optional[Union[Dict, str]] = None,
         json_data: Optional[Dict] = None,
-        headers: Optional[Dict[str, str]] = None
+        headers: Optional[Dict[str, str]] = None,
+        files: Optional[Dict] = None
     ) -> APIResponse:
         """发送 POST 请求"""
-        return self.request("POST", endpoint, data=data, json_data=json_data, headers=headers)
+        return self.request("POST", endpoint, data=data, json_data=json_data, headers=headers, files=files)
     
     def put(
         self,
         endpoint: str,
         data: Optional[Union[Dict, str]] = None,
         json_data: Optional[Dict] = None,
-        headers: Optional[Dict[str, str]] = None
+        headers: Optional[Dict[str, str]] = None,
+        files: Optional[Dict] = None
     ) -> APIResponse:
         """发送 PUT 请求"""
-        return self.request("PUT", endpoint, data=data, json_data=json_data, headers=headers)
+        return self.request("PUT", endpoint, data=data, json_data=json_data, headers=headers, files=files)
     
     def patch(
         self,
         endpoint: str,
         data: Optional[Union[Dict, str]] = None,
         json_data: Optional[Dict] = None,
-        headers: Optional[Dict[str, str]] = None
+        headers: Optional[Dict[str, str]] = None,
+        files: Optional[Dict] = None
     ) -> APIResponse:
         """发送 PATCH 请求"""
-        return self.request("PATCH", endpoint, data=data, json_data=json_data, headers=headers)
+        return self.request("PATCH", endpoint, data=data, json_data=json_data, headers=headers, files=files)
     
     def delete(
         self,
@@ -287,16 +237,7 @@ class APITester:
         return self.request("DELETE", endpoint, headers=headers)
     
     def assert_status(self, response: APIResponse, expected: int) -> bool:
-        """
-        断言状态码
-        
-        Args:
-            response: API 响应
-            expected: 期望的状态码
-            
-        Returns:
-            是否匹配
-        """
+        """断言状态码"""
         return response.status_code == expected
     
     def assert_json_field(
@@ -310,13 +251,13 @@ class APITester:
         
         Args:
             response: API 响应
-            field_path: 字段路径（如 "data.users.0.name"）
+            field_path: 字段路径（如 "data.users.0.name"，支持负数索引如 "-1"）
             expected_value: 期望值（可选）
-            
+        
         Returns:
             字段是否存在且匹配
         """
-        data = response.json
+        data = response.parsed_json
         if data is None:
             return False
         
@@ -327,10 +268,14 @@ class APITester:
         for part in parts:
             if isinstance(current, dict) and part in current:
                 current = current[part]
-            elif isinstance(current, list) and part.isdigit():
-                index = int(part)
-                if 0 <= index < len(current):
-                    current = current[index]
+            elif isinstance(current, list):
+                # 支持负数索引（如 "-1" 表示最后一个元素）
+                if part.lstrip('-').isdigit():
+                    index = int(part)
+                    if -len(current) <= index < len(current):
+                        current = current[index]
+                    else:
+                        return False
                 else:
                     return False
             else:
@@ -346,16 +291,7 @@ class APITester:
         response: APIResponse,
         max_ms: float
     ) -> bool:
-        """
-        断言响应时间
-        
-        Args:
-            response: API 响应
-            max_ms: 最大允许响应时间（毫秒）
-            
-        Returns:
-            是否在允许范围内
-        """
+        """断言响应时间"""
         return response.elapsed_ms <= max_ms
     
     def run_test_suite(
@@ -366,14 +302,8 @@ class APITester:
         运行测试套件
         
         Args:
-            tests: 测试列表，每项包含:
-                - name: 测试名称
-                - method: HTTP 方法
-                - endpoint: API 端点
-                - expected_status: 期望状态码
-                - data/json_data: 请求数据（可选）
-                - assertions: 断言列表（可选）
-                
+            tests: 测试列表
+            
         Returns:
             测试结果列表
         """
@@ -443,21 +373,17 @@ class APITester:
         self.history.clear()
     
     def export_history(self, file_path: str) -> None:
-        """
-        导出请求历史
-        
-        Args:
-            file_path: 输出文件路径
-        """
+        """导出请求历史"""
         data = [resp.to_dict() for resp in self.history]
         
         with open(file_path, 'w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=2, default=str)
 
 
-# 使用示例
+# 命令行入口
 if __name__ == "__main__":
     import argparse
+    from urllib.parse import urlparse, parse_qs
     
     parser = argparse.ArgumentParser(description="API 测试工具")
     parser.add_argument("method", choices=["get", "post", "put", "patch", "delete"])
@@ -470,11 +396,13 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
     
-    # 解析 URL
-    from urllib.parse import urlparse
+    # 解析 URL（保留查询参数）
     parsed = urlparse(args.url)
     base_url = f"{parsed.scheme}://{parsed.netloc}"
     endpoint = parsed.path
+    query_params = parse_qs(parsed.query)
+    # 将查询参数展平为单值
+    params = {k: v[0] if len(v) == 1 else v for k, v in query_params.items()}
     
     tester = APITester(base_url=base_url, timeout=args.timeout)
     
@@ -482,8 +410,11 @@ if __name__ == "__main__":
     if args.auth:
         if args.auth.startswith("Bearer "):
             tester.set_auth("bearer", args.auth[7:])
-        else:
+        elif ":" in args.auth:
             tester.set_auth("basic", args.auth)
+        else:
+            print("错误: 认证格式不正确，使用 'Bearer token' 或 'user:pass'")
+        exit(1)
     
     # 设置请求头
     headers = {}
@@ -507,7 +438,8 @@ if __name__ == "__main__":
             method=args.method.upper(),
             endpoint=endpoint,
             json_data=json_data,
-            headers=headers if headers else None
+            headers=headers if headers else None,
+            params=params if params else None
         )
         
         print(f"\n{'='*50}")
@@ -539,91 +471,74 @@ if __name__ == "__main__":
 ```python
 from api_tester import APITester
 
-# 创建测试器
 tester = APITester(base_url="https://jsonplaceholder.typicode.com")
 
 # GET 请求
 response = tester.get("/posts/1")
 print(f"状态码: {response.status_code}")
-print(f"数据: {response.json}")
+print(f"数据: {response.parsed_json}")
 
 # POST 请求
 response = tester.post(
     "/posts",
-    json_data={
-        "title": "Test Post",
-        "body": "This is a test.",
-        "userId": 1
-    }
+    json_data={"title": "Test", "body": "Test body", "userId": 1}
 )
 print(f"创建成功: {response.success}")
 
-# 设置认证
-tester.set_auth("bearer", "your-api-token")
+# 文件上传
+response = tester.post(
+    "/upload",
+    files={"file": open("photo.jpg", "rb")}
+)
+
+# Basic 认证
+tester.set_auth("basic", "user:pass")
 
 # 运行测试套件
 tests = [
-    {
-        "name": "获取用户列表",
-        "method": "GET",
-        "endpoint": "/users",
-        "expected_status": 200,
-        "assertions": [
-            {"type": "response_time", "max_ms": 1000}
-        ]
-    },
-    {
-        "name": "创建用户",
-        "method": "POST",
-        "endpoint": "/users",
-        "json_data": {"name": "New User", "email": "test@example.com"},
-        "expected_status": 201
-    }
+    {"name": "获取列表", "method": "GET", "endpoint": "/posts", "expected_status": 200},
+    {"name": "创建", "method": "POST", "endpoint": "/posts", "json_data": {"title": "Test"}, "expected_status": 201},
 ]
-
 results = tester.run_test_suite(tests)
 for r in results:
-    status = "✓" if r["passed"] else "✗"
-    print(f"{status} {r['name']}: {r.get('error', 'OK')}")
+    print(f"{'✓' if r['passed'] else '✗'} {r['name']}: {r.get('error', 'OK')}")
 ```
 
-## 故障排除
+## 命令行用法
 
-### 问题：requests 未安装
-```
-错误: ModuleNotFoundError: No module named 'requests'
-```
-**解决**: 安装 requests
 ```bash
-pip install requests
+# GET 请求
+python api_tester.py get https://api.example.com/users
+
+# POST JSON
+python api_tester.py post https://api.example.com/users --data '{"name": "John"}'
+
+# 带查询参数
+python api_tester.py get "https://api.example.com/users?id=1&name=test"
+
+# Bearer 认证
+python api_tester.py get https://api.example.com/me --auth "Bearer token123"
+
+# Basic 认证
+python api_tester.py get https://api.example.com/me --auth "user:pass"
+
+# 自定义请求头
+python api_tester.py get https://api.example.com/data --header "X-Custom: value"
 ```
 
-### 问题：SSL 证书验证失败
-```
-错误: SSLError: certificate verify failed
-```
-**解决**: 禁用 SSL 验证（仅用于测试环境）
-```python
-tester = APITester(verify_ssl=False)
-```
+## 问题排查
 
-### 问题：连接超时
-```
-错误: ConnectionError: Connection timed out
-```
-**解决**: 增加超时时间
-```python
-tester = APITester(timeout=60)
-```
+| 问题 | 原因 | 解决 |
+|------|------|------|
+| requests 未安装 | 未安装依赖 | `pip install requests` |
+| SSL 证书验证失败 | 自签名证书 | `APITester(verify_ssl=False)` |
+| 连接超时 | 网络问题 | 增加 `timeout` 参数 |
+| JSON 解析错误 | 请求数据格式错误 | 检查 JSON 格式 |
+| 认证失败 | 格式错误 | 使用 `Bearer token` 或 `user:pass` |
 
-### 问题：JSON 解析错误
-```
-错误: JSONDecodeError
-```
-**解决**: 检查请求数据格式，确保是有效 JSON
+## 依赖
 
-## 参考链接
-
-- [requests 官方文档](https://docs.python-requests.org/)
-- [HTTP 状态码](https://httpstatuses.com/)
-- [REST API 设计指南](https://restfulapi.net/)
+| 依赖 | 版本 | 用途 |
+|------|------|------|
+| Python | 3.8+ | 运行环境 |
+| requests | ≥2.28 | HTTP 客户端 |
