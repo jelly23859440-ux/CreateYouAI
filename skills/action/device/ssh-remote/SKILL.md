@@ -169,6 +169,8 @@ class SSHClient:
             command: 要执行的命令
             password: sudo 密码
             timeout: 超时时间
+        
+        注意：密码包含单引号时需转义，生产环境建议使用 pty + stdin.write()
         """
         if not self.client:
             return {
@@ -180,6 +182,7 @@ class SSHClient:
         
         try:
             # 使用 -S 从 stdin 读取密码
+            # 注意：密码包含单引号时需转义，生产环境建议使用 pty + stdin.write()
             stdin, stdout, stderr = self.client.exec_command(
                 f"echo '{password}' | sudo -S {command}",
                 timeout=timeout
@@ -187,14 +190,13 @@ class SSHClient:
             
             exit_code = stdout.channel.recv_exit_status()
             
-            # 清除 sudo 输出中的密码提示
             stdout_text = stdout.read().decode('utf-8', errors='replace')
             stderr_text = stderr.read().decode('utf-8', errors='replace')
             
             return {
                 "success": exit_code == 0,
                 "stdout": stdout_text,
-                "stderr": stderr_text.replace("[sudo] password for ...: ", ""),
+                "stderr": stderr_text,
                 "exit_code": exit_code
             }
         except socket.timeout:
@@ -252,8 +254,9 @@ class SFTPClient:
     ) -> Dict[str, Any]:
         """上传文件"""
         try:
-            self.sftp.put(local_path, remote_path)
+            # 先获取文件大小，避免 put 和 getsize 之间的竞态
             file_size = os.path.getsize(local_path)
+            self.sftp.put(local_path, remote_path)
             return {
                 "success": True,
                 "bytes_transferred": file_size,
