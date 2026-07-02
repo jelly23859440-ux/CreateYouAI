@@ -168,7 +168,8 @@ class ServiceClient {
       
       return response.data;
     } catch (error) {
-      throw new Error(`服务调用失败: ${error.message}`);
+      const msg = error instanceof Error ? error.message : String(error);
+      throw new Error(`服务调用失败: ${msg}`);
     }
   }
 }

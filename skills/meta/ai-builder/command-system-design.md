@@ -239,7 +239,10 @@ class CommandExecutor {
       const result = await parsed.command.execute(parsed.args, parsed.options);
       return { success: true, data: result };
     } catch (error) {
-      return { success: false, error: error.message };
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : String(error) 
+      };
     }
   }
 }
