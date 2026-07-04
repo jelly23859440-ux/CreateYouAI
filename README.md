@@ -61,6 +61,31 @@ description: >
 
 ---
 
+## ⚠️ 重要提醒：使用前请确保有备份
+
+> **在让 AI 修改你的代码之前，必须先做备份！**
+>
+> AI 修改代码时可能引入错误，没有备份将无法恢复。
+
+### 快速备份方法
+
+```bash
+# 方法 1：git 备份（推荐）
+cd 你的项目目录
+git init
+git add -A
+git commit -m "备份"
+
+# 方法 2：复制文件夹
+xcopy /E /Y 你的项目 备份目录
+```
+
+### 自动备份
+
+使用 [Git 自动备份 Skill](skills/action/tool/git-backup/SKILL.md) 可以实现文件变化时自动提交。
+
+---
+
 ## Quick Start / 快速开始
 
 Tell your AI: "我想做一个 XX 的 AI" / 告诉你的 AI："我想做一个 XX 的 AI"
@@ -85,6 +110,7 @@ skills/
 │   ├── web/             🌐 网络操作（2 个）
 │   ├── file/            📁 文件操作（4 个）
 │   ├── device/          📱 设备交互（3 个）
+│   │   └── voice-recognition/  🎤 语音识别（含4种方案+代码）
 │   └── media/           🎬 媒体处理（5 个）
 │
 ├── core/              🧠 核心能力层（5 个）

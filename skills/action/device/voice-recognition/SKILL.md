@@ -292,38 +292,19 @@ python voice_recorder.py --list  # 应列出设备
 
 ---
 
-## 方案四：浏览器 MediaRecorder
+## 方案四：浏览器 MediaRecorder（Chrome 扩展）
 
-**适配**：零依赖兜底，能接受有损格式
+**适配**：零依赖兜底，能接受有损格式。适合 Web 应用。
 
-**不需要 IPC**，直接在渲染进程调用：
+**完整代码**：见 `solutions/mediarecorder/content.js`（Chrome 扩展注入脚本）
 
-> ⚠️ **Electron 中使用 MediaRecorder 需要主进程放行麦克风权限**。在 `main/index.ts` 中添加：
-> ```typescript
-> session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => {
->   if (['media', 'microphone', 'camera'].includes(permission)) {
->     callback(true);
->   } else {
->     callback(false);
->   }
-> });
-> ```
+**安装步骤**：
 
-```typescript
-const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-const mr = new MediaRecorder(stream, { mimeType: 'audio/webm' });
-mr.ondataavailable = (e) => chunks.push(e.data);
-mr.onstop = async () => {
-  const blob = new Blob(chunks, { type: 'audio/webm' });
-  const fd = new FormData();
-  fd.append('audio', blob, 'recording.webm');
-  await fetch('http://localhost:17451/api/voice/transcribe', { method: 'POST', body: fd });
-};
-mr.start();
-mr.stop();
-```
+1. 创建扩展目录，包含 `manifest.json` 和 `content.js`
+2. 浏览器加载已解压的扩展程序
+3. 后端需要 ffmpeg 转换 webm → wav
 
-**后端需要 ffmpeg 转换 webm → wav。**
+**后端要求**：`POST /api/voice/transcribe` 接口，接收 FormData（audio 字段），返回 `{"text": "识别结果"}`
 
 ---
 

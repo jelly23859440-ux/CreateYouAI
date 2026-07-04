@@ -27,6 +27,22 @@ skills/<layer>/<category>/<skill-name>/
     └── SKILL.md          # 方案 C
 ```
 
+### 单一实现 + 方案代码（推荐）
+
+Skill 文档描述多种方案，代码文件放在 solutions/ 目录：
+
+```
+skills/<layer>/<category>/<skill-name>/
+├── SKILL.md              # 方案说明（AI 读这个选方案）
+└── solutions/            # 各方案的具体代码
+    ├── <方案一>/
+    │   └── code.js       # 方案一的实现代码
+    └── <方案二>/
+        └── code.py       # 方案二的实现代码
+```
+
+**优点**：用户拿到 skill 可以直接完成功能安装，不需要 AI 重新写代码。
+
 **示例**：
 ```
 skills/action/device/voice-recognition/
